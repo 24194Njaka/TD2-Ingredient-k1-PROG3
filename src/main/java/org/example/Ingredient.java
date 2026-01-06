@@ -5,7 +5,7 @@ public class Ingredient {
     private String name;
     private double price;
     private CategoryEnum category;
-    private Dish dish; // Le plat auquel appartient cet ingrédient
+    private Dish dish;
 
     public Ingredient(int id, String name, double price, CategoryEnum category, Dish dish) {
         this.id = id;
@@ -30,6 +30,6 @@ public class Ingredient {
     public void setDish(Dish dish) { this.dish = dish; }
 
     public String getDishName() {
-        return (dish != null) ? dish.getName() : "No dish assigned";
+        return (dish != null) ? dish.getName() : " aucune plat";
     }
 }
