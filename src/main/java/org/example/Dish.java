@@ -15,7 +15,6 @@ public class Dish {
         this.ingredients = ingredients;
     }
 
-    // Getters et Setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -28,7 +27,6 @@ public class Dish {
     public List<Ingredient> getIngredients() { return ingredients; }
     public void setIngredients(List<Ingredient> ingredients) { this.ingredients = ingredients; }
 
-    // Calcul du prix total du plat en additionnant le prix de tous ses ingrédients
     public double getDishPrice() {
         double totalPrice = 0.0;
         if (ingredients != null) {
