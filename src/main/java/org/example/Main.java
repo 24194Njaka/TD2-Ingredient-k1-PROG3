@@ -112,6 +112,22 @@ public class Main {
         }
 
 
+        System.out.println("=== TEST f) findIngredientsByCriteria ===");
+
+// Ex 1 : Tous les légumes
+        List<Ingredient> vegIngredients = dataRetriever.findIngredientsByCriteria(
+                null, CategoryEnum.VEGETABLE, null, 1, 10
+        );
+        vegIngredients.forEach(i -> System.out.println(i.getName()));
+
+// Ex 2 : Chocolat lié à gâteau
+        List<Ingredient> chocGâteau = dataRetriever.findIngredientsByCriteria(
+                "cho", null, "gâteau", 1, 10
+        );
+        chocGâteau.forEach(i -> System.out.println(i.getName()));
+
+
+
 
     }
 

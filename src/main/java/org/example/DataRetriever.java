@@ -276,6 +276,69 @@ public class DataRetriever {
         return dishes;
     }
 
+    public List<Ingredient> findIngredientsByCriteria(
+            String ingredientName,
+            CategoryEnum category,
+            String dishName,
+            int page,
+            int size
+    ) {
+        List<Ingredient> ingredients = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder("""
+        SELECT i.id, i.name, i.price, i.category, i.id_dish
+        FROM ingredient i
+        LEFT JOIN dish d ON i.id_dish = d.id
+        WHERE 1=1
+    """);
+
+        List<Object> params = new ArrayList<>();
+
+        if (ingredientName != null && !ingredientName.isEmpty()) {
+            sql.append(" AND i.name ILIKE ?");
+            params.add("%" + ingredientName + "%");
+        }
+
+        if (category != null) {
+            sql.append(" AND i.category = ?::ingredient_category_enum");
+            params.add(category.name());
+        }
+
+        if (dishName != null && !dishName.isEmpty()) {
+            sql.append(" AND d.name ILIKE ?");
+            params.add("%" + dishName + "%");
+        }
+
+        // Pagination
+        sql.append(" ORDER BY i.id ASC LIMIT ? OFFSET ?");
+        params.add(size);
+        params.add((page - 1) * size);
+
+        try (Connection conn = DBConnection.getDBConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    int id = rs.getInt("id");
+                    String name = rs.getString("name");
+                    double price = rs.getDouble("price");
+                    CategoryEnum cat = CategoryEnum.valueOf(rs.getString("category"));
+                    Integer dishId = rs.getInt("id_dish");
+
+                    ingredients.add(new Ingredient(id, name, price, cat, new Dish(dishId, null, null, null)));
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur lors de la récupération des ingrédients : " + e.getMessage(), e);
+        }
+
+        return ingredients;
+    }
 
 
 }
