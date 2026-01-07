@@ -34,12 +34,24 @@ public class Main {
         }
 
         // b) findDishById(id = 999)
-        System.out.println("=== TEST b) findDishById(page =2 , size=2) ===");
-        try {
-            dataRetriever.findDishById(999);
-        } catch (RuntimeException e) {
-            System.out.println("Exception attendue");
-       }
+        System.out.println("\n=== TEST b) findIngredients avec pagination ===");
+
+// Test page 2, size 2 (exemple du TD)
+        List<Ingredient> page2 = dataRetriever.findIngredients(2, 2);
+        System.out.println("Page 2, size 2 :");
+        if (page2.isEmpty()) {
+            System.out.println("Liste vide");
+        } else {
+            page2.forEach(i -> System.out.println(i.getId() + " - " + i.getName()));
+        }
+
+// Test page 3, size 5 (devrait être vide si moins d'ingrédients)
+        List<Ingredient> page3 = dataRetriever.findIngredients(3, 5);
+        System.out.println("Page 3, size 5 :");
+        System.out.println(page3.isEmpty() ? "Liste vide" : page3);
+
+
+
 
         // ===== Test c) createIngredients =====
         System.out.println("=== TEST c) createIngredients - SUCCESS ===");
