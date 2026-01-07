@@ -1,24 +1,31 @@
 package org.example;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DBConnection {
 
-    private static final String JDBC_URL = "jdbc:postgresql://localhost:5432/mini_dish_db";
-    private static final String USERNAME = "mini_dish_db_manager";
-    private static final String PASSWORD = "1234567";
+    private static final Dotenv dotenv = Dotenv.load();
 
-    public Connection getConnection() {
+    public static Connection getDBConnection() {
         try {
-            return DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
+            String jdbcUrl = dotenv.get("JDBC_URL");
+            String username = dotenv.get("USERNAME");
+            String password = dotenv.get("PASSWORD");
+
+            if (jdbcUrl == null || username == null || password == null) {
+                throw new RuntimeException("Variables d'environnement manquantes (.env)");
+            }
+
+            return DriverManager.getConnection(jdbcUrl, username, password);
+
         } catch (SQLException e) {
             throw new RuntimeException("Failed to connect to the database", e);
         }
     }
-
-    public void close(Connection connection) {
+    public static void close(Connection connection) {
         if (connection != null) {
             try {
                 connection.close();
@@ -27,4 +34,6 @@ public class DBConnection {
             }
         }
     }
+
 }
+
