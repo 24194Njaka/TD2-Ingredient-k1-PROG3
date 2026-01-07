@@ -1,9 +1,6 @@
 package org.example;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -219,7 +216,7 @@ public class DataRetriever {
                         ps.setInt(2, ing.getId());
                         ps.addBatch();
                     }
-                    ps.executeBatch();
+                    ps.executeBatch(); //Exécute toutes les instructions du batch en une seule opération.
                 }
             }
 
@@ -339,6 +336,9 @@ public class DataRetriever {
 
         return ingredients;
     }
+
+
+
 
 
 
