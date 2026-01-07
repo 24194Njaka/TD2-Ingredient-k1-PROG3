@@ -238,6 +238,43 @@ public class DataRetriever {
 
 
 
+    public List<Dish> findDishsByIngredientName(String ingredientName) {
+        if (ingredientName == null || ingredientName.isEmpty()) {
+            throw new IllegalArgumentException("ingredientName ne peut pas être vide");
+        }
+
+        String sql = """
+        SELECT DISTINCT d.id, d.name, d.dish_type
+        FROM dish d
+        JOIN dish_ingredient di ON d.id = di.dish_id
+        JOIN ingredient i ON di.ingredient_id = i.id
+        WHERE i.name ILIKE ?
+    """;
+
+        List<Dish> dishes = new ArrayList<>();
+
+        try (Connection conn = DBConnection.getDBConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, "%" + ingredientName + "%");
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    int id = rs.getInt("id");
+                    String name = rs.getString("name");
+                    DishTypeEnum type = DishTypeEnum.valueOf(rs.getString("dish_type"));
+
+                    // Ici on ne charge pas encore les ingrédients pour simplifier
+                    dishes.add(new Dish(id, name, type, new ArrayList<>()));
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur lors de la récupération des plats : " + e.getMessage(), e);
+        }
+
+        return dishes;
+    }
 
 
 

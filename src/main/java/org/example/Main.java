@@ -61,7 +61,7 @@ public class Main {
 
         List<Ingredient> duplicateIngredients = Arrays.asList(
                 new Ingredient(0,"Carotte", 2000.0, CategoryEnum.VEGETABLE, null),
-                new Ingredient(0,"ronono", 800.0, CategoryEnum.VEGETABLE, null) // déjà existante
+                new Ingredient(0,"ronono", 800.0, CategoryEnum.VEGETABLE, null)
         );
 
         try {
@@ -73,11 +73,11 @@ public class Main {
         System.out.println("=== TEST d) saveDish ===");
 
         Dish newDish = new Dish(
-                0, // 0 ou null → INSERT
+                0,
                 "Soupe de légumes",
                 DishTypeEnum.START,
                 Arrays.asList(
-                        new Ingredient(2, null, 0.0, null, null) // Oignon EXISTANT (id=2)
+                        new Ingredient(2, null, 0.0, null, null)
                 )
         );
 
@@ -85,14 +85,12 @@ public class Main {
         System.out.println("Créé : " + savedDish.getName() + " (id=" + savedDish.getId());
 
 
-        // Mise à jour d'un plat existant
-
         Dish updateDish = new Dish(
-                1, // EXISTANT → UPDATE
+                1,
                 "Salade de fromage",
                 DishTypeEnum.START,
                 Arrays.asList(
-                        new Ingredient(5, null, 0.0, null, null) // Fromage EXISTANT (id=5)
+                        new Ingredient(5, null, 0.0, null, null)
                 )
         );
 
@@ -104,7 +102,19 @@ public class Main {
         );
 
 
+
+        System.out.println("=== TEST e) findDishsByIngredientName ===");
+
+        List<Dish> dishesWithChoc = dataRetriever.findDishsByIngredientName("choc");
+
+        for (Dish d : dishesWithChoc) {
+            System.out.println("Dish: " + d.getName() + " (id=" + d.getId() + ")");
+        }
+
+
+
     }
+
 
 
 
