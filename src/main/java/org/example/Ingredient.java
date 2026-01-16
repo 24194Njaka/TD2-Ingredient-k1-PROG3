@@ -1,13 +1,17 @@
 package org.example;
 
+import org.example.Dish;
+
 public class Ingredient {
     private int id;
     private String name;
-    private double price;
+    private Double price;
     private CategoryEnum category;
-    private Dish dish;
+    private   Dish dish;
 
-    public Ingredient(int id, String name, double price, CategoryEnum category, Dish dish) {
+    public Ingredient() {}
+
+    public Ingredient(int id, String name, Double price, CategoryEnum category, Dish dish) {
         this.id = id;
         this.name = name;
         this.price = price;
@@ -15,22 +19,53 @@ public class Ingredient {
         this.dish = dish;
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    public double getPrice() { return price; }
-    public void setPrice(double price) { this.price = price; }
-
-    public CategoryEnum getCategory() { return category; }
-    public void setCategory(CategoryEnum category) { this.category = category; }
-
-    public Dish getDish() { return dish; }
-    public void setDish(Dish dish) { this.dish = dish; }
-
+    // 🔁 Méthode demandée explicitement
     public String getDishName() {
-        return (dish != null) ? dish.getName() : " aucune plat";
+        return dish != null ? dish.getName() : null;
+    }
+
+    // Getters & Setters
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        if (price < 0) {
+            throw new IllegalArgumentException("Le prix ne peut pas être négatif");
+        }
+        this.price = price;
+    }
+
+    public CategoryEnum getCategory() {
+        return category;
+    }
+
+    public void setCategory(CategoryEnum category) {
+        this.category = category;
+    }
+
+    public Dish getDish() {
+        return dish;
+    }
+
+    public void setDish(Dish dish) {
+        this.dish = dish;
     }
 }
+
