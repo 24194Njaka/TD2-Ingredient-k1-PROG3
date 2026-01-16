@@ -8,9 +8,9 @@ public class Dish {
 
     private int id;
     private String name;
+    private  Double price ;
     private DishTypeEnum dishType;
     private List<Ingredient> ingredients = new ArrayList<>();
-
 
     public Dish(int id, String name, DishTypeEnum dishType) {
         this.id = id;
@@ -18,11 +18,22 @@ public class Dish {
         this.dishType = dishType;
     }
 
+    public Dish(int id, Double price, String name, DishTypeEnum dishType) {
+        this.id = id;
+        this.name = name;
+        this.dishType = dishType;
+        this.price = price;
+    }
+
     //Calcul du prix total du plat
-    public Double getDishPrice() {
+    public Double getDishCost() {
         return ingredients.stream()
                 .mapToDouble(Ingredient::getPrice)
                 .sum();
+    }
+
+    public Double getPrice() {
+        return price;
     }
 
     // Getters & Setters

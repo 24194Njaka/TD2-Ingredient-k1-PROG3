@@ -1,10 +1,9 @@
-
+drop database mini_dish_db;
 CREATE DATABASE mini_dish_db;
 CREATE USER mini_dish_db_manager
 WITH PASSWORD '1234567';
 GRANT CONNECT ON DATABASE mini_dish_db TO mini_dish_db_manager;
 GRANT CREATE ON DATABASE mini_dish_db TO mini_dish_db_manager;
-GRANT ALL PRIVILEGES ON TABLE dish_ingredient TO mini_dish_db_manager
 \c mini_dish_db;
 CREATE TYPE ingredient_category_enum AS ENUM (
     'VEGETABLE',
@@ -15,7 +14,7 @@ CREATE TYPE ingredient_category_enum AS ENUM (
 );
 
 CREATE TYPE dish_type_enum AS ENUM (
-    'START',
+    'STARTER',
     'MAIN',
     'DESSERT'
 );

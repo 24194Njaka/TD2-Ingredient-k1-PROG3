@@ -36,7 +36,7 @@ public class Main {
             );
         }
 
-        System.out.println(" Prix total du plat : " + dish.getDishPrice());
+        System.out.println(" Prix total du plat : " + dish.getDishCost());
 
 
         DataRetriever dr = new DataRetriever();

@@ -1,3 +1,6 @@
+drop table Ingredient;
+drop table Dish;
+
 CREATE TYPE ingredient_category_enum AS ENUM (
     'VEGETABLE',
     'ANIMAL',
@@ -7,7 +10,7 @@ CREATE TYPE ingredient_category_enum AS ENUM (
 );
 
 CREATE TYPE dish_type_enum AS ENUM (
-    'START',
+    'STARTER',
     'MAIN',
     'DESSERT'
 );

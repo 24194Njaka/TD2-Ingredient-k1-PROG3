@@ -19,7 +19,7 @@ public class Ingredient {
         this.dish = dish;
     }
 
-    // 🔁 Méthode demandée explicitement
+    // Méthode demandée explicitement
     public String getDishName() {
         return dish != null ? dish.getName() : null;
     }
