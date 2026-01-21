@@ -1,6 +1,6 @@
 package org.example;
 
-import org.example.Dish;
+
 
 public class Ingredient {
     private int id;

@@ -6,23 +6,26 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.math.BigDecimal;
 
 public class DataRetriever {
-
     public Dish findDishById(Integer id) {
 
         String sql = """
-            SELECT d.id AS dish_id,
-                   d.name AS dish_name,
-                   d.dish_type,
-                   i.id AS ingredient_id,
-                   i.name AS ingredient_name,
-                   i.price,
-                   i.category
-            FROM Dish d
-            LEFT JOIN Ingredient i ON d.id = i.id_dish
-            WHERE d.id = ?
-        """;
+        SELECT
+            d.id AS dish_id,
+            d.name AS dish_name,
+            d.dish_type,
+            d.price AS dish_price,
+
+            i.id AS ingredient_id,
+            i.name AS ingredient_name,
+            i.price AS ingredient_price,
+            i.category AS ingredient_category
+        FROM Dish d
+        LEFT JOIN Ingredient i ON d.id = i.id_dish
+        WHERE d.id = ?
+    """;
 
         Dish dish = null;
 
@@ -31,41 +34,51 @@ public class DataRetriever {
 
             ps.setInt(1, id);
 
-            ResultSet rs = ps.executeQuery();
+            try (ResultSet rs = ps.executeQuery()) {
 
-            while (rs.next()) {
+                while (rs.next()) {
 
-                // Création du Dish une seule fois
-                if (dish == null) {
-                    dish = new Dish(
-                            rs.getInt("dish_id"),
-                            rs.getString("dish_name"),
-                            DishTypeEnum.valueOf(rs.getString("dish_type"))
-                    );
-                }
+                    // Création du Dish une seule fois
+                    if (dish == null) {
+                        BigDecimal priceBD = rs.getBigDecimal("dish_price");
+                        Double price = (priceBD != null) ? priceBD.doubleValue() : null;
 
-                // Création des ingrédients s'ils existent
-                int ingredientId = rs.getInt("ingredient_id");
+                        dish = new Dish(
+                                rs.getInt("dish_id"),
+                                rs.getString("dish_name"),
+                                DishTypeEnum.valueOf(rs.getString("dish_type")),
+                                price
+                        );
+                    }
 
-                if (!rs.wasNull()) {
-                    Ingredient ingredient = new Ingredient(
-                            ingredientId,
-                            rs.getString("ingredient_name"),
-                            rs.getDouble("price"),
-                            CategoryEnum.valueOf(rs.getString("category")),
-                            dish
-                    );
+                    // Création des ingrédients (si existants)
+                    int ingredientId = rs.getInt("ingredient_id");
 
-                    dish.addIngredient(ingredient);
+                    if (!rs.wasNull()) {
+                        Ingredient ingredient = new Ingredient(
+                                ingredientId,
+                                rs.getString("ingredient_name"),
+                                rs.getDouble("ingredient_price"),
+                                CategoryEnum.valueOf(rs.getString("ingredient_category")),
+                                dish
+                        );
+
+                        dish.addIngredient(ingredient);
+                    }
                 }
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException("Erreur lors de la récupération du plat", e);
+            throw new RuntimeException("Erreur lors de la récupération du plat avec id = " + id, e);
         }
 
         return dish;
     }
+
+
+
+
+
 
     public List<Ingredient> findIngredients(int page, int size) {
 
@@ -127,7 +140,7 @@ public class DataRetriever {
 
     public List<Ingredient> createIngredients(List<Ingredient> newIngredients) {
 
-        // 🔹 Vérifier doublons dans la liste fournie
+        //Vérifier doublons dans la liste fournie
         for (int i = 0; i < newIngredients.size(); i++) {
             Ingredient ing1 = newIngredients.get(i);
             for (int j = i + 1; j < newIngredients.size(); j++) {
@@ -403,7 +416,7 @@ public class DataRetriever {
         try (Connection connection = DBConnection.getDBConnection();
              PreparedStatement ps = connection.prepareStatement(sql.toString())) {
 
-            // 🔹 Passer les paramètres dynamiques
+            // Passer les paramètres dynamiques
             for (int i = 0; i < params.size(); i++) {
                 Object param = params.get(i);
                 if (param instanceof String) {
@@ -443,6 +456,5 @@ public class DataRetriever {
 
         return ingredients;
     }
-
 }
 
