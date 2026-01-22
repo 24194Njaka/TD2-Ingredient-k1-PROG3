@@ -1,5 +1,4 @@
-drop table Ingredient;
-drop table Dish;
+
 
 CREATE TYPE ingredient_category_enum AS ENUM (
     'VEGETABLE',
@@ -14,6 +13,12 @@ CREATE TYPE dish_type_enum AS ENUM (
     'MAIN',
     'DESSERT'
 );
+
+CREATE TYPE unit_type AS ENUM (
+    'PCS',
+    'KG',
+    'L'
+)
 CREATE TABLE Dish (
                       id SERIAL PRIMARY KEY,
                       name VARCHAR(100) NOT NULL,
@@ -31,3 +36,19 @@ CREATE TABLE Ingredient (
                                     REFERENCES Dish(id)
                                     ON DELETE SET NULL
 );
+
+
+CREATE TABLE DishIngredient (
+    id SERIAL PRIMARY KEY ,
+    id_dish INT not null ,
+    CONSTRAINT fk_dish
+        FOREIGN KEY (id_dish)
+            REFERENCES Dish(id)
+            ON DELETE SET NULL,
+    id_ingredient INT not null ,
+        FOREIGN KEY (id_ingredient)
+             REFERENCES Ingredient(id)
+             ON DELETE set null,
+    quantity_required numeric,
+    unit unit_type
+)

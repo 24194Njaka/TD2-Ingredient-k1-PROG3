@@ -12,3 +12,11 @@ insert into Ingredient (id,name,price,category,id_dish) values (1,'Laitue',800.0
 UPDATE dish SET price = 2000 WHERE name = 'Salade fraîche';
 UPDATE dish SET price = 6000 WHERE name = 'Poulet grillé';
 UPDATE dish SET price = NULL WHERE name IN ('Riz au légume', 'Gâteau au chocolat', 'Salade de fruit');
+
+
+insert into dishingredient (id,id_dish,id_ingredient,quantity_required,unit) values (1,1,1,0.20,'KG'),
+                                                                                    (2,1,2,0.15,'KG'),
+                                                                                    (3,2,3,1.00,'KG'),
+                                                                                    (4,4,4,0.30,'KG'),
+                                                                                    (5,4,5,0.20,'KG');
+
