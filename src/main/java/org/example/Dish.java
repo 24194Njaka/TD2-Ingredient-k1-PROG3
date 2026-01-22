@@ -77,6 +77,23 @@ public class Dish {
         ingredient.setDish(this);
     }
 
+    // Marge brute = prix de vente - coût total des ingrédients
+    public Double getGrossMargin() {
+
+        if (price == null) {
+            throw new IllegalStateException(
+                    "Impossible de calculer la marge brute : le prix de vente n'est pas défini"
+            );
+        }
+
+        double ingredientCost = ingredients.stream()
+                .mapToDouble(i -> i.getPrice() != null ? i.getPrice() : 0.0)
+                .sum();
+
+        return price - ingredientCost;
+    }
+
+
     @Override
     public String toString() {
         return "Dish{" +

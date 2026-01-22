@@ -39,7 +39,7 @@ public class Main {
 //        }
 
 
-       // =============== findIngredients ==============
+        // =============== findIngredients ==============
 
 //
 //        int page = 1;
@@ -57,9 +57,7 @@ public class Main {
 //        }
 
 
-
-
-     // ============ CREATEINGREDIENTS ===========
+        // ============ CREATEINGREDIENTS ===========
 
 
 //
@@ -83,10 +81,7 @@ public class Main {
 //        }
 
 
-
-
         // ============== SaveDish =======
-
 
 
 //        Dish saladeExotique = new Dish(
@@ -126,38 +121,88 @@ public class Main {
 //        }
 
 
-
-
-
         //======== findDishsByIngredientName ========
 
 
-        String searchIngredient = "Ail";
+//        String searchIngredient = "Ail";
+//
+//        try {
+//            List<Dish> dishes = dr.findDishesByIngredientName(searchIngredient);
+//
+//            if (dishes.isEmpty()) {
+//                System.out.println("Aucun plat ne contient l'ingrédient : " + searchIngredient);
+//            } else {
+//                System.out.println("Plats contenant l'ingrédient '" + searchIngredient + "' :");
+//                for (Dish dish : dishes) {
+//                    System.out.println(dish);  // utilise le toString de Dish
+//                }
+//            }
+//
+//        } catch (RuntimeException e) {
+//            System.err.println(" Échec de la récupération des plats");
+//            e.printStackTrace();
+//        }
 
-        try {
-            List<Dish> dishes = dr.findDishesByIngredientName(searchIngredient);
 
-            if (dishes.isEmpty()) {
-                System.out.println("Aucun plat ne contient l'ingrédient : " + searchIngredient);
-            } else {
-                System.out.println("Plats contenant l'ingrédient '" + searchIngredient + "' :");
-                for (Dish dish : dishes) {
-                    System.out.println(dish);  // utilise le toString de Dish
-                }
-            }
+        //======== findIngredientsByCriteria========
 
-        } catch (RuntimeException e) {
-            System.err.println(" Échec de la récupération des plats");
-            e.printStackTrace();
-        }
+
+//        try {
+//            List<Ingredient> ingredients1 = dr.findIngredientsByCriteria("Ail", CategoryEnum.VEGETABLE, null, 1, 10);
+//            System.out.println("=== Résultat 1 ===");
+//            ingredients1.forEach(System.out::println);
+//        } catch (RuntimeException e) {
+//            System.err.println(" Échec de la recherche d'ingrédients 1");
+//            e.printStackTrace();
+//        }
+//
+//        // Exemple 2 : tous les ingrédients du plat "Poulet grillé", peu importe le nom ou catégorie
+//        try {
+//            List<Ingredient> ingredients2 = dr.findIngredientsByCriteria(null, null, "Poulet grillé", 1, 10);
+//            System.out.println("=== Résultat 2 ===");
+//            ingredients2.forEach(System.out::println);
+//        } catch (RuntimeException e) {
+//            System.err.println("Échec de la recherche d'ingrédients 2");
+//            e.printStackTrace();
+//        }
+//
+//        // Exemple 3 : tous les ingrédients de catégorie OTHER, page 2 avec 5 éléments par page
+//        try {
+//            List<Ingredient> ingredients3 = dr.findIngredientsByCriteria(null, CategoryEnum.OTHER, null, 2, 5);
+//            System.out.println("=== Résultat 3 ===");
+//            ingredients3.forEach(System.out::println);
+//        } catch (RuntimeException e) {
+//            System.err.println("Échec de la recherche d'ingrédients 3");
+//            e.printStackTrace();
+//        }
+//
+//        // Exemple 4 : tous les ingrédients, sans filtre, page 1, 20 éléments
+//        try {
+//            List<Ingredient> ingredients4 = dr.findIngredientsByCriteria(null, null, null, 1, 20);
+//            System.out.println("=== Résultat 4 ===");
+//            ingredients4.forEach(System.out::println);
+//        } catch (RuntimeException e) {
+//            System.err.println("Échec de la recherche d'ingrédients 4");
+//            e.printStackTrace();
+//        }
+
+
+        Dish dish = new Dish(1, "Pizza", DishTypeEnum.MAIN, 15000.0);
+
+        dish.addIngredient(new Ingredient(1, "Fromage", 3000.0, CategoryEnum.DAIRY, dish));
+        dish.addIngredient(new Ingredient(2, "Tomate", 1000.0, CategoryEnum.VEGETABLE, dish));
+
+        System.out.println("Marge brute : " + dish.getGrossMargin());
+
     }
+}
 
 
 
 
 
 
-    }
+
 
 
 
