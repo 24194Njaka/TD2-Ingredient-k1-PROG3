@@ -298,85 +298,86 @@ public class DataRetriever {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public List<Dish> findDishesByIngredientName(String ingredientName) {
-        List<Dish> dishes = new ArrayList<>();
-
         String sql = """
-            SELECT d.id AS dish_id, d.name AS dish_name, d.dish_type,
-                   i.id AS ing_id, i.name AS ing_name, i.price, i.category
-            FROM Dish d
-            JOIN Ingredient i ON i.id_dish = d.id
-            WHERE i.name ILIKE ?
-            ORDER BY d.id
-        """;
+        SELECT d.id AS dish_id, d.name AS dish_name, d.dish_type, d.price,
+               i.id AS ingredient_id, i.name AS ingredient_name, i.price AS ingredient_price, i.category
+        FROM dish d
+        LEFT JOIN ingredient i ON i.id_dish = d.id
+        WHERE i.name ILIKE ?
+        ORDER BY d.id
+    """;
 
-        try (Connection connection = DBConnection.getDBConnection();
-             PreparedStatement ps = connection.prepareStatement(sql)) {
+        List<Dish> dishes = new ArrayList<>();
+        try (Connection conn = DBConnection.getDBConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            // Paramètre avec wildcards pour rechercher "contient"
+            // Paramètre pour le LIKE (recherche insensible à la casse)
             ps.setString(1, "%" + ingredientName + "%");
 
-            ResultSet rs = ps.executeQuery();
+            try (ResultSet rs = ps.executeQuery()) {
+                Dish currentDish = null;
+                while (rs.next()) {
+                    int dishId = rs.getInt("dish_id");
 
-            Dish currentDish = null;
-            int currentDishId = -1;
+                    if (currentDish == null || !currentDish.getId().equals(dishId)) {
+                        // Nouveau plat
+                        currentDish = new Dish(
+                                dishId,
+                                rs.getString("dish_name"),
+                                DishTypeEnum.valueOf(rs.getString("dish_type")),
+                                rs.getDouble("price")
+                        );
+                        dishes.add(currentDish);
+                    }
 
-            while (rs.next()) {
-                int dishId = rs.getInt("dish_id");
-
-                // Créer un nouveau plat si on change d'id
-                if (currentDish == null || dishId != currentDishId) {
-                    currentDishId = dishId;
-                    String dishName = rs.getString("dish_name");
-                    DishTypeEnum dishType = DishTypeEnum.valueOf(rs.getString("dish_type"));
-
-                    currentDish = new Dish(dishId, dishName, dishType);
-                    dishes.add(currentDish);
+                    // Ajouter l'ingrédient si présent
+                    int ingredientId = rs.getInt("ingredient_id");
+                    if (!rs.wasNull()) {
+                        Ingredient ingredient = new Ingredient(
+                                ingredientId,
+                                rs.getString("ingredient_name"),
+                                rs.getDouble("ingredient_price"),
+                                CategoryEnum.valueOf(rs.getString("category")),
+                                currentDish
+                        );
+                        currentDish.addIngredient(ingredient);
+                    }
                 }
-
-                // Ajouter l'ingrédient au plat courant
-                int ingId = rs.getInt("ing_id");
-                String ingName = rs.getString("ing_name");
-                double price = rs.getDouble("price");
-                CategoryEnum category = CategoryEnum.valueOf(rs.getString("category"));
-
-                Ingredient ing = new Ingredient(ingId, ingName, price, category, currentDish);
-                currentDish.getIngredients().add(ing);
             }
-
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Erreur lors de la recherche des plats par ingrédient", e);
+            throw new RuntimeException("Erreur lors de la récupération des plats par ingrédient", e);
         }
 
         return dishes;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     public List<Ingredient> findIngredientsByCriteria(

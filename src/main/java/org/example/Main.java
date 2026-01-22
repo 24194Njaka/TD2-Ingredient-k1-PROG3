@@ -89,41 +89,68 @@ public class Main {
 
 
 
+//        Dish saladeExotique = new Dish(
+//                null, // ID null → sera auto-généré
+//                "Salade exotique",
+//                DishTypeEnum.STARTER,
+//                1500.0
+//        );
+//
+//        // Création des ingrédients
+//        List<Ingredient> ingredients = new ArrayList<>();
+//        ingredients.add(new Ingredient(null, "Mangue", 500.0, CategoryEnum.VEGETABLE, saladeExotique));
+//        ingredients.add(new Ingredient(null, "Avocat", 700.0, CategoryEnum.VEGETABLE, saladeExotique));
+//        ingredients.add(new Ingredient(null, "Crevettes", 800.0, CategoryEnum.ANIMAL, saladeExotique));
+//
+//        saladeExotique.setIngredients(ingredients);
+//
+//        // Sauvegarde du plat + ingrédients
+//        try {
+//            Dish savedDish = dr.saveDish(saladeExotique);
+//            System.out.println("Plat sauvegardé avec succès :");
+//            System.out.println(savedDish);
+//        } catch (RuntimeException e) {
+//            System.err.println(" Échec de la création ou mise à jour du plat");
+//            e.printStackTrace();
+//        }
+//
+//        // Optionnel : mise à jour du plat
+//        saladeExotique.setPrice(1800.0);
+//        try {
+//            Dish updatedDish = dr.saveDish(saladeExotique);
+//            System.out.println(" Plat mis à jour avec succès :");
+//            System.out.println(updatedDish);
+//        } catch (RuntimeException e) {
+//            System.err.println(" Échec de la mise à jour du plat");
+//            e.printStackTrace();
+//        }
+
+
+
+
+
+        //======== findDishsByIngredientName ========
+
+
+        String searchIngredient = "Ail";
+
         try {
-            // 1️⃣ Création d'un nouveau plat
-            Dish saladeExotique = new Dish(null, "Salade exotique", DishTypeEnum.STARTER, 1500.00);
+            List<Dish> dishes = dr.findDishesByIngredientName(searchIngredient);
 
-            // Création des ingrédients
-            List<Ingredient> ingredients = new ArrayList<>();
-            ingredients.add(new Ingredient(null, "Mangue", 300.0, CategoryEnum.VEGETABLE, saladeExotique));
-            ingredients.add(new Ingredient(null, "Avocat", 400.0, CategoryEnum.VEGETABLE, saladeExotique));
-
-            saladeExotique.setIngredients(ingredients);
-
-            // Sauvegarde du plat (insertion)
-            Dish createdDish = dr.saveDish(saladeExotique);
-            System.out.println("Plat créé : " + createdDish);
-
-            // 2️⃣ Mise à jour du plat : ajout et suppression d'ingrédients
-            List<Ingredient> updatedIngredients = new ArrayList<>();
-            updatedIngredients.add(new Ingredient(null, "Mangue", 300.0, CategoryEnum.VEGETABLE, createdDish));
-            updatedIngredients.add(new Ingredient(null, "Crevettes", 500.0, CategoryEnum.ANIMAL, createdDish));
-
-            createdDish.setIngredients(updatedIngredients);
-            createdDish.setPrice(1800.0); // mise à jour du prix
-
-            // Sauvegarde du plat (update)
-            Dish updatedDish = dr.saveDish(createdDish);
-            System.out.println("Plat mis à jour : " + updatedDish);
+            if (dishes.isEmpty()) {
+                System.out.println("Aucun plat ne contient l'ingrédient : " + searchIngredient);
+            } else {
+                System.out.println("Plats contenant l'ingrédient '" + searchIngredient + "' :");
+                for (Dish dish : dishes) {
+                    System.out.println(dish);  // utilise le toString de Dish
+                }
+            }
 
         } catch (RuntimeException e) {
-            System.err.println("❌ Échec de la création ou mise à jour du plat");
+            System.err.println(" Échec de la récupération des plats");
             e.printStackTrace();
         }
-
-
-
-
+    }
 
 
 
@@ -143,7 +170,19 @@ public class Main {
 
 
 
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
