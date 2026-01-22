@@ -187,15 +187,95 @@ public class Main {
 //        }
 
 
-        Dish dish = new Dish(1, "Pizza", DishTypeEnum.MAIN, 15000.0);
+        //====== grossMrgin======
 
-        dish.addIngredient(new Ingredient(1, "Fromage", 3000.0, CategoryEnum.DAIRY, dish));
-        dish.addIngredient(new Ingredient(2, "Tomate", 1000.0, CategoryEnum.VEGETABLE, dish));
+//        Dish dish = new Dish(1, "Pizza", DishTypeEnum.MAIN, 15000.0);
+//
+//        dish.addIngredient(new Ingredient(1, "Fromage", 3000.0, CategoryEnum.DAIRY, dish));
+//        dish.addIngredient(new Ingredient(2, "Tomate", 1000.0, CategoryEnum.VEGETABLE, dish));
+//
+//        System.out.println("Marge brute : " + dish.getGrossMargin());
 
-        System.out.println("Marge brute : " + dish.getGrossMargin());
+
+        System.out.println("===== TEST 1 : Création d’un plat SANS prix =====");
+
+        Dish salade = new Dish(
+                null,
+                "Salade exotique",
+                DishTypeEnum.STARTER,
+                null // ⚠️ prix NON défini
+        );
+
+        salade.addIngredient(new Ingredient(
+                null,
+                "Tomate",
+                300.0,
+                CategoryEnum.VEGETABLE,
+                salade
+        ));
+
+        salade.addIngredient(new Ingredient(
+                null,
+                "Fromage",
+                700.0,
+                CategoryEnum.DAIRY,
+                salade
+        ));
+
+        try {
+            Dish savedDish = dr.saveDish(salade);
+            System.out.println("Plat créé : " + savedDish);
+
+            // ❌ doit lever une exception
+            System.out.println("Marge brute : " + savedDish.getGrossMargin());
+
+        } catch (RuntimeException e) {
+            System.out.println("Exception attendue : " + e.getMessage());
+        }
+
+        /* =====================================================
+           TEST 2 : Mise à jour du prix du plat
+        ===================================================== */
+        System.out.println("\n===== TEST 2 : Mise à jour du prix =====");
+
+        try {
+            salade.setPrice(2500.0); // 💰 prix fixé
+            Dish updatedDish = dr.saveDish(salade);
+
+            System.out.println("Plat mis à jour : " + updatedDish);
+            System.out.println("Marge brute : " + updatedDish.getGrossMargin());
+
+        } catch (RuntimeException e) {
+            System.out.println("Erreur inattendue : " + e.getMessage());
+        }
+
+        /* =====================================================
+           TEST 3 : Récupération depuis la base
+        ===================================================== */
+        System.out.println("\n===== TEST 3 : findDishById =====");
+
+        try {
+            Dish dishFromDb = dr.findDishById(salade.getId());
+
+            System.out.println("Plat récupéré : " + dishFromDb);
+            System.out.println("Marge brute : " + dishFromDb.getGrossMargin());
+
+        } catch (RuntimeException e) {
+            System.out.println("Erreur : " + e.getMessage());
+        }
+
+
+
+
+
+
+
 
     }
+
+
 }
+
 
 
 

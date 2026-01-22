@@ -24,7 +24,7 @@ public class Ingredient {
     }
 
     // Getters & Setters
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 

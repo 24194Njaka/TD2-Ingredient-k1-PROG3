@@ -211,24 +211,23 @@ public class DataRetriever {
 
     public Dish saveDish(Dish toSave) {
         String upsertDishSql = """
-        INSERT INTO dish (name, dish_type, price)
-        VALUES (?, ?::dish_type_enum, ?)
-        ON CONFLICT (id) DO UPDATE
-        SET name = EXCLUDED.name,
-            dish_type = EXCLUDED.dish_type,
-            price = EXCLUDED.price
-        RETURNING id
-    """;
+            INSERT INTO dish (name, dish_type, price)
+            VALUES (?, ?::dish_type_enum, ?)
+            ON CONFLICT (id) DO UPDATE
+            SET name = EXCLUDED.name,
+                dish_type = EXCLUDED.dish_type,
+                price = EXCLUDED.price
+            RETURNING id
+        """;
 
         try (Connection conn = DBConnection.getDBConnection()) {
-            conn.setAutoCommit(false); // début transaction
+            conn.setAutoCommit(false);
 
-            // Insertion ou update du plat
+            // 1️⃣ Insertion ou update du plat
             Integer dishId;
             try (PreparedStatement ps = conn.prepareStatement(upsertDishSql)) {
                 ps.setString(1, toSave.getName());
                 ps.setString(2, toSave.getDishType().name());
-
                 if (toSave.getPrice() != null) {
                     ps.setBigDecimal(3, BigDecimal.valueOf(toSave.getPrice()));
                 } else {
@@ -245,26 +244,34 @@ public class DataRetriever {
                 }
             }
 
-            // Sauvegarder tous les ingrédients (INSERT ou UPDATE)
+            // 2️⃣ Gestion des ingrédients
             List<Ingredient> ingredients = toSave.getIngredients();
             if (ingredients == null) ingredients = new ArrayList<>();
 
             for (Ingredient ing : ingredients) {
                 String upsertIngredientSql = """
-                INSERT INTO ingredient (name, price, category, id_dish)
-                VALUES (?, ?, ?::ingredient_category_enum, ?)
-                ON CONFLICT (id) DO UPDATE
-                SET name = EXCLUDED.name,
-                    price = EXCLUDED.price,
-                    category = EXCLUDED.category,
-                    id_dish = EXCLUDED.id_dish
-                RETURNING id
-            """;
+                    INSERT INTO ingredient (name, price, category, id_dish)
+                    VALUES (?, ?, ?::ingredient_category_enum, ?)
+                    ON CONFLICT (id) DO UPDATE
+                    SET name = EXCLUDED.name,
+                        price = EXCLUDED.price,
+                        category = EXCLUDED.category,
+                        id_dish = EXCLUDED.id_dish
+                    RETURNING id
+                """;
 
                 try (PreparedStatement ps = conn.prepareStatement(upsertIngredientSql)) {
                     ps.setString(1, ing.getName());
-                    ps.setBigDecimal(2, BigDecimal.valueOf(ing.getPrice()));
-                    ps.setString(3, ing.getCategory().name());
+                    if (ing.getPrice() != null) {
+                        ps.setBigDecimal(2, BigDecimal.valueOf(ing.getPrice()));
+                    } else {
+                        ps.setNull(2, Types.NUMERIC);
+                    }
+                    if (ing.getCategory() != null) {
+                        ps.setString(3, ing.getCategory().name());
+                    } else {
+                        ps.setNull(3, Types.VARCHAR);
+                    }
                     ps.setInt(4, dishId);
 
                     try (ResultSet rs = ps.executeQuery()) {
@@ -278,12 +285,17 @@ public class DataRetriever {
             }
 
             conn.commit();
-            return toSave;
+            return findDishById(dishId);
 
         } catch (SQLException e) {
             throw new RuntimeException("Erreur lors de la sauvegarde du plat", e);
         }
     }
+
+
+
+
+
 
     public List<Dish> findDishesByIngredientName(String ingredientName) {
         String sql = """
