@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.math.BigDecimal;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DataRetriever {
     public Dish findDishById(Integer id) {
@@ -215,128 +216,113 @@ public class DataRetriever {
         return createdIngredients;
     }
 
+    public Dish saveDish(Dish toSave) {
+        String upsertDishSql = """
+        INSERT INTO dish (name, dish_type, price)
+        VALUES (?, ?::dish_type_enum, ?)
+        ON CONFLICT (id) DO UPDATE
+        SET name = EXCLUDED.name,
+            dish_type = EXCLUDED.dish_type,
+            price = EXCLUDED.price
+        RETURNING id
+    """;
 
+        try (Connection conn = DBConnection.getDBConnection()) {
+            conn.setAutoCommit(false); // début transaction
 
+            // Insertion ou update du plat
+            Integer dishId;
+            try (PreparedStatement ps = conn.prepareStatement(upsertDishSql)) {
+                ps.setString(1, toSave.getName());
+                ps.setString(2, toSave.getDishType().name());
 
-
-
-
-
-
-
-
-
-
-
-
-    public Dish saveDish(Dish dishToSave) {
-
-        String insertDishSQL = """
-            INSERT INTO Dish(name, dish_type)
-            VALUES (?, ?::dish_type_enum)
-            RETURNING id
-        """;
-
-        String updateDishSQL = """
-            UPDATE Dish
-            SET name = ?, dish_type = ?::dish_type_enum
-            WHERE id = ?
-        """;
-
-        String deleteIngredientSQL = """
-            DELETE FROM Ingredient
-            WHERE id = ?
-        """;
-
-        String insertIngredientSQL = """
-            INSERT INTO Ingredient(name, price, category, id_dish)
-            VALUES (?, ?, ?::ingredient_category_enum, ?)
-            RETURNING id
-        """;
-
-        try (Connection connection = DBConnection.getDBConnection()) {
-            connection.setAutoCommit(false); // transaction
-
-            try {
-                //  Vérifier si le plat existe
-                Dish existingDish = findDishById(dishToSave.getId());
-
-                if (existingDish == null) {
-                    //  Insérer nouveau plat
-                    try (PreparedStatement ps = connection.prepareStatement(insertDishSQL)) {
-                        ps.setString(1, dishToSave.getName());
-                        ps.setString(2, dishToSave.getDishType().name());
-
-                        ResultSet rs = ps.executeQuery();
-                        if (rs.next()) {
-                            dishToSave.setId(rs.getInt("id"));
-                        }
-                    }
+                if (toSave.getPrice() != null) {
+                    ps.setBigDecimal(3, BigDecimal.valueOf(toSave.getPrice()));
                 } else {
-                    //  Mettre à jour plat existant
-                    try (PreparedStatement ps = connection.prepareStatement(updateDishSQL)) {
-                        ps.setString(1, dishToSave.getName());
-                        ps.setString(2, dishToSave.getDishType().name());
-                        ps.setInt(3, dishToSave.getId());
-                        ps.executeUpdate();
-                    }
-
-                    //  Supprimer les ingrédients dissociés
-                    List<Ingredient> toRemove = new ArrayList<>();
-                    for (Ingredient oldIng : existingDish.getIngredients()) {
-                        boolean stillExists = false;
-                        for (Ingredient newIng : dishToSave.getIngredients()) {
-                            if (oldIng.getId() == newIng.getId()) {
-                                stillExists = true;
-                                break;
-                            }
-                        }
-                        if (!stillExists) {
-                            toRemove.add(oldIng);
-                        }
-                    }
-
-                    try (PreparedStatement psDelete = connection.prepareStatement(deleteIngredientSQL)) {
-                        for (Ingredient ing : toRemove) {
-                            psDelete.setInt(1, ing.getId());
-                            psDelete.executeUpdate();
-                        }
-                    }
+                    ps.setNull(3, Types.NUMERIC);
                 }
 
-                //Ajouter ou mettre à jour les ingrédients
-                try (PreparedStatement psInsert = connection.prepareStatement(insertIngredientSQL)) {
-                    for (Ingredient ing : dishToSave.getIngredients()) {
-                        // Si nouvel ingrédient (id == 0) -> insérer
-                        if (ing.getId() == 0) {
-                            psInsert.setString(1, ing.getName());
-                            psInsert.setDouble(2, ing.getPrice());
-                            psInsert.setString(3, ing.getCategory().name());
-                            psInsert.setInt(4, dishToSave.getId());
-
-                            ResultSet rs = psInsert.executeQuery();
-                            if (rs.next()) {
-                                ing.setId(rs.getInt("id"));
-                            }
-                        }
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        dishId = rs.getInt(1);
+                        toSave.setId(dishId);
+                    } else {
+                        throw new RuntimeException("Impossible de récupérer l'ID du plat");
                     }
                 }
-
-                connection.commit();
-
-            } catch (SQLException e) {
-                connection.rollback();
-                e.printStackTrace();
-                throw new RuntimeException("Erreur lors de la sauvegarde du plat, rollback effectué", e);
             }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Erreur de connexion à la base", e);
-        }
+            // Sauvegarder tous les ingrédients (INSERT ou UPDATE)
+            List<Ingredient> ingredients = toSave.getIngredients();
+            if (ingredients == null) ingredients = new ArrayList<>();
 
-        return dishToSave;
+            for (Ingredient ing : ingredients) {
+                String upsertIngredientSql = """
+                INSERT INTO ingredient (name, price, category, id_dish)
+                VALUES (?, ?, ?::ingredient_category_enum, ?)
+                ON CONFLICT (id) DO UPDATE
+                SET name = EXCLUDED.name,
+                    price = EXCLUDED.price,
+                    category = EXCLUDED.category,
+                    id_dish = EXCLUDED.id_dish
+                RETURNING id
+            """;
+
+                try (PreparedStatement ps = conn.prepareStatement(upsertIngredientSql)) {
+                    ps.setString(1, ing.getName());
+                    ps.setBigDecimal(2, BigDecimal.valueOf(ing.getPrice()));
+                    ps.setString(3, ing.getCategory().name());
+                    ps.setInt(4, dishId);
+
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            ing.setId(rs.getInt(1));
+                        } else {
+                            throw new RuntimeException("Impossible de récupérer l'ID de l'ingrédient");
+                        }
+                    }
+                }
+            }
+
+            conn.commit();
+            return toSave;
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur lors de la sauvegarde du plat", e);
+        }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public List<Dish> findDishesByIngredientName(String ingredientName) {
         List<Dish> dishes = new ArrayList<>();

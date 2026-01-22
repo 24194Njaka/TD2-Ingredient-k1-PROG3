@@ -1,47 +1,42 @@
 package org.example;
 
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class Dish {
 
-    private int id;
+    private Integer id;
     private String name;
-    private  Double price ;
+    private Double price;
     private DishTypeEnum dishType;
     private List<Ingredient> ingredients = new ArrayList<>();
 
-    public Dish(int id, String name, DishTypeEnum dishType) {
+    public Dish(Integer id, String name, DishTypeEnum dishType) {
         this.id = id;
         this.name = name;
         this.dishType = dishType;
     }
 
-    public Dish(int id,  String name, DishTypeEnum dishType,Double price) {
+    public Dish(Integer id, String name, DishTypeEnum dishType, Double price) {
         this.id = id;
         this.name = name;
         this.dishType = dishType;
         this.price = price;
     }
 
-    //Calcul du prix total du plat
+    // Calcul du prix total du plat
     public Double getDishCost() {
         return ingredients.stream()
-                .mapToDouble(Ingredient::getPrice)
+                .mapToDouble(i -> i.getPrice() != null ? i.getPrice() : 0.0)
                 .sum();
     }
 
-    public Double getPrice() {
-        return price;
-    }
-
     // Getters & Setters
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -51,6 +46,14 @@ public class Dish {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
     }
 
     public DishTypeEnum getDishType() {
@@ -74,7 +77,14 @@ public class Dish {
         ingredient.setDish(this);
     }
 
-
-
+    @Override
+    public String toString() {
+        return "Dish{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", price=" + price +
+                ", dishType=" + dishType +
+                ", ingredients=" + ingredients +
+                '}';
+    }
 }
-
