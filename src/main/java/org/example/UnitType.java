@@ -1,6 +1,6 @@
 package org.example;
 
-public enum TypeEnum {
+public enum UnitType {
     PCS,
     KG,
     L

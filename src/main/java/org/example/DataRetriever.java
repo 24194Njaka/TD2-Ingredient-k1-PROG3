@@ -52,6 +52,7 @@ public class DataRetriever {
                     }
 
                     // Création des ingrédients (si existants)
+
                     int ingredientId = rs.getInt("ingredient_id");
 
                     if (!rs.wasNull()) {
@@ -223,7 +224,7 @@ public class DataRetriever {
         try (Connection conn = DBConnection.getDBConnection()) {
             conn.setAutoCommit(false);
 
-            // 1️⃣ Insertion ou update du plat
+            //   update du plat
             Integer dishId;
             try (PreparedStatement ps = conn.prepareStatement(upsertDishSql)) {
                 ps.setString(1, toSave.getName());
@@ -244,7 +245,7 @@ public class DataRetriever {
                 }
             }
 
-            // 2️⃣ Gestion des ingrédients
+            // ====Gestion des ingrédients===
             List<Ingredient> ingredients = toSave.getIngredients();
             if (ingredients == null) ingredients = new ArrayList<>();
 

@@ -197,13 +197,15 @@ public class Main {
 //        System.out.println("Marge brute : " + dish.getGrossMargin());
 
 
+        // finddd
+
         System.out.println("===== TEST 1 : Création d’un plat SANS prix =====");
 
         Dish salade = new Dish(
                 null,
                 "Salade exotique",
                 DishTypeEnum.STARTER,
-                null // ⚠️ prix NON défini
+                null //  prix NON défini
         );
 
         salade.addIngredient(new Ingredient(
@@ -226,20 +228,19 @@ public class Main {
             Dish savedDish = dr.saveDish(salade);
             System.out.println("Plat créé : " + savedDish);
 
-            // ❌ doit lever une exception
+            // doit lever une exception
             System.out.println("Marge brute : " + savedDish.getGrossMargin());
 
         } catch (RuntimeException e) {
             System.out.println("Exception attendue : " + e.getMessage());
         }
 
-        /* =====================================================
-           TEST 2 : Mise à jour du prix du plat
-        ===================================================== */
+          // TEST 2 : Mise à jour du prix du plat
+
         System.out.println("\n===== TEST 2 : Mise à jour du prix =====");
 
         try {
-            salade.setPrice(2500.0); // 💰 prix fixé
+            salade.setPrice(2500.0); //  prix fixé
             Dish updatedDish = dr.saveDish(salade);
 
             System.out.println("Plat mis à jour : " + updatedDish);
@@ -249,9 +250,8 @@ public class Main {
             System.out.println("Erreur inattendue : " + e.getMessage());
         }
 
-        /* =====================================================
-           TEST 3 : Récupération depuis la base
-        ===================================================== */
+          // TEST 3 : Récupération depuis la base
+
         System.out.println("\n===== TEST 3 : findDishById =====");
 
         try {
