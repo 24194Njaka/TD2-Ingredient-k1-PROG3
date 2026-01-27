@@ -9,7 +9,7 @@ public class Dish {
     private String name;
     private Double price;
     private DishTypeEnum dishType;
-    private List<Ingredient> ingredients = new ArrayList<>();
+    private List<DishIngredient> ingredients = new ArrayList<>();
 
     public Dish(Integer id, String name, DishTypeEnum dishType) {
         this.id = id;
@@ -17,80 +17,43 @@ public class Dish {
         this.dishType = dishType;
     }
 
-    public Dish(Integer id, String name, DishTypeEnum dishType, Double price) {
-        this.id = id;
-        this.name = name;
-        this.dishType = dishType;
-        this.price = price;
-    }
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
 
-    // Calcul du prix total du plat
-    public Double getDishCost() {
-        return ingredients.stream()
-                .mapToDouble(i -> i.getPrice() != null ? i.getPrice() : 0.0)
-                .sum();
-    }
+    public String getName() { return name; }
 
-    // Getters & Setters
-    public Integer getId() {
-        return id;
-    }
+    public DishTypeEnum getDishType() { return dishType; }
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Double getPrice() {
-        return price;
-    }
-
+    public Double getPrice() { return price; }
     public void setPrice(Double price) {
+        if (price != null && price < 0) {
+            throw new IllegalArgumentException("Prix négatif interdit");
+        }
         this.price = price;
     }
 
-    public DishTypeEnum getDishType() {
-        return dishType;
-    }
-
-    public void setDishType(DishTypeEnum dishType) {
-        this.dishType = dishType;
-    }
-
-    public List<Ingredient> getIngredients() {
+    public List<DishIngredient> getIngredients() {
         return ingredients;
     }
 
-    public void setIngredients(List<Ingredient> ingredients) {
-        this.ingredients = ingredients;
+    public void addDishIngredient(DishIngredient di) {
+        ingredients.add(di);
     }
 
-    public void addIngredient(Ingredient ingredient) {
-        ingredients.add(ingredient);
-        ingredient.setDish(this);
-    }
-
-    // Marge brute = prix de vente - coût total des ingrédients
-
+    // Méthode métier
     public Double getGrossMargin() {
         if (price == null) {
-            throw new IllegalStateException(
-                    "Le prix de vente n'est pas encore fixé, impossible de calculer la marge brute"
-            );
+            throw new IllegalStateException("Prix non défini");
         }
 
-        return price - getDishCost();
+        double cost = ingredients.stream()
+                .mapToDouble(di ->
+                        di.getIngredient().getPrice()
+                                * di.getQuantityRequired())
+                .sum();
+
+        return price - cost;
     }
-
-
-
 
     @Override
     public String toString() {
@@ -99,7 +62,6 @@ public class Dish {
                 ", name='" + name + '\'' +
                 ", price=" + price +
                 ", dishType=" + dishType +
-                ", ingredients=" + ingredients +
                 '}';
     }
 }
