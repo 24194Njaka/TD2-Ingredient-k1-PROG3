@@ -265,7 +265,7 @@ public class Main {
 //        }
 
 
-        Dish pizza = new Dish(1, "Pizza Margherita", DishTypeEnum.MAIN);
+        Dish pizza = new Dish(1, "Salade frâche", DishTypeEnum.MAIN);
         pizza.setPrice(15000.0);
 
         // 2️⃣ Création des ingrédients

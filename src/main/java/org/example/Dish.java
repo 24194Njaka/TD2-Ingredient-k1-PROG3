@@ -52,7 +52,13 @@ public class Dish {
                                 * di.getQuantityRequired())
                 .sum();
 
-        return price - cost;
+        return price - getDishCost();
+    }
+
+    public Double getDishCost() {
+        return ingredients.stream()
+                .mapToDouble(di -> di.getIngredient().getPrice() * di.getQuantityRequired())
+                .sum();
     }
 
     @Override
