@@ -19,4 +19,9 @@ insert into dishingredient (id,id_dish,id_ingredient,quantity_required,unit) val
                                                                                     (3,2,3,1.00,'KG'),
                                                                                     (4,4,4,0.30,'KG'),
                                                                                     (5,4,5,0.20,'KG');
-
+UPDATE dish SET name = 'Salade fraîche', dish_type = 'START', price = 3500.00 WHERE id = 1;
+UPDATE dish SET price = 12000.00 WHERE id = 2;
+UPDATE dish SET price = NULL WHERE id = 3;
+UPDATE dish SET name = 'Gâteau au chocolat', dish_type = 'DESSERT', price = 8000.00 WHERE id = 4;
+UPDATE dish SET name = 'Salade de fruits', dish_type = 'DESSERT', price = NULL WHERE id = 5;
+DELETE FROM dish WHERE id > 5;

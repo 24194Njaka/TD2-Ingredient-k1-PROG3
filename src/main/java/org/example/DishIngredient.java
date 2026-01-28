@@ -33,6 +33,14 @@ public class DishIngredient {
     public UnitType getUnit() { return unit; }
     public void setUnit(UnitType unit) { this.unit = unit; }
 
+
+
+    public double getCost() {
+        if (this.ingredient == null) return 0;
+        return this.ingredient.getPrice() * this.quantityRequired;
+    }
+
+
     @Override
     public String toString() {
         return "DishIngredient{" +
@@ -42,4 +50,6 @@ public class DishIngredient {
                 ", unit=" + unit +
                 '}';
     }
+
+
 }

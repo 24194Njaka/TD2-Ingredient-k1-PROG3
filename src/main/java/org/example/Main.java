@@ -187,128 +187,58 @@ public class Main {
 //        }
 
 
-        //====== grossMrgin======
 
-//        Dish dish = new Dish(1, "Pizza", DishTypeEnum.MAIN, 15000.0);
-//
-//        dish.addIngredient(new Ingredient(1, "Fromage", 3000.0, CategoryEnum.DAIRY, dish));
-//        dish.addIngredient(new Ingredient(2, "Tomate", 1000.0, CategoryEnum.VEGETABLE, dish));
-//
-//        System.out.println("Marge brute : " + dish.getGrossMargin());
+        Ingredient laitue = new Ingredient(1, "Laitue", 100.0, CategoryEnum.VEGETABLE, null);
+        Ingredient tomate = new Ingredient(2, "Tomate", 75.0, CategoryEnum.VEGETABLE, null);
 
+        // Pour Poulet Grillé (Coût 4500): Poulet (4500) * 1 = 4500
+        Ingredient poulet = new Ingredient(3, "Poulet", 4500.0, CategoryEnum.ANIMAL, null);
 
-        // finddd
+        // 2. Création du Plat : Salade Fraîche
+        Dish salade = new Dish(1, "Salade fraîche", DishTypeEnum.STARTER);
+        salade.setPrice(3500.0); // Prix selon l'image 1
+        salade.addDishIngredient(new DishIngredient(null, salade, laitue, 1.0, UnitType.PCS));
+        salade.addDishIngredient(new DishIngredient(null, salade, tomate, 2.0, UnitType.PCS));
 
-//        System.out.println("===== TEST 1 : Création d’un plat SANS prix =====");
-//
-//        Dish salade = new Dish(
-//                null,
-//                "Salade exotique",
-//                DishTypeEnum.STARTER,
-//                null //  prix NON défini
-//        );
-//
-//        salade.addIngredient(new Ingredient(
-//                null,
-//                "Tomate",
-//                300.0,
-//                CategoryEnum.VEGETABLE,
-//                salade
-//        ));
-//
-//        salade.addIngredient(new Ingredient(
-//                null,
-//                "Fromage",
-//                700.0,
-//                CategoryEnum.DAIRY,
-//                salade
-//        ));
-//
-//        try {
-//            Dish savedDish = dr.saveDish(salade);
-//            System.out.println("Plat créé : " + savedDish);
-//
-//            // doit lever une exception
-//            System.out.println("Marge brute : " + savedDish.getGrossMargin());
-//
-//        } catch (RuntimeException e) {
-//            System.out.println("Exception attendue : " + e.getMessage());
-//        }
-//
-//          // TEST 2 : Mise à jour du prix du plat
-//
-//        System.out.println("\n===== TEST 2 : Mise à jour du prix =====");
-//
-//        try {
-//            salade.setPrice(2500.0); //  prix fixé
-//            Dish updatedDish = dr.saveDish(salade);
-//
-//            System.out.println("Plat mis à jour : " + updatedDish);
-//            System.out.println("Marge brute : " + updatedDish.getGrossMargin());
-//
-//        } catch (RuntimeException e) {
-//            System.out.println("Erreur inattendue : " + e.getMessage());
-//        }
-//
-//          // TEST 3 : Récupération depuis la base
-//
-//        System.out.println("\n===== TEST 3 : findDishById =====");
-//
-//        try {
-//            Dish dishFromDb = dr.findDishById(salade.getId());
-//
-//            System.out.println("Plat récupéré : " + dishFromDb);
-//            System.out.println("Marge brute : " + dishFromDb.getGrossMargin());
-//
-//        } catch (RuntimeException e) {
-//            System.out.println("Erreur : " + e.getMessage());
-//        }
+        // 3. Création du Plat : Poulet Grillé
+        Dish pouletGrille = new Dish(2, "Poulet grillé", DishTypeEnum.MAIN);
+        pouletGrille.setPrice(12000.0); // Prix selon l'image 1
+        pouletGrille.addDishIngredient(new DishIngredient(null, pouletGrille, poulet, 1.0, UnitType.KG));
+
+        // 4. Création du Plat : Riz aux légumes (Prix NULL)
+        Dish riz = new Dish(3, "Riz aux légumes", DishTypeEnum.MAIN);
+        riz.setPrice(null); // Doit lever une exception pour la marge
+
+        // --- SAUVEGARDE ET TESTS ---
+
+        System.out.println("=== TEST DES RÉSULTATS ATTENDUS ===\n");
+
+        testPlat(salade);
+        testPlat(pouletGrille);
+        testPlat(riz);
+    }
+
+    private static void testPlat(Dish dish) {
+        System.out.println("Plat : " + dish.getName());
+        System.out.println("  > Coût calculé : " + dish.getDishCost()); // Attendu: 250.0 pour salade
+
+        try {
+            System.out.println("  > Marge brute  : " + dish.getGrossMargin()); // Attendu: 3250.0 pour salade
+        } catch (IllegalStateException e) {
+            System.out.println("  > Marge brute  : EXCEPTION (Prix NULL)");
+        }
+        System.out.println("-----------------------------------");
+    }
 
 
-        Dish pizza = new Dish(1, "Salade frâche", DishTypeEnum.MAIN);
-        pizza.setPrice(15000.0);
 
-        // 2️⃣ Création des ingrédients
-        Ingredient cheese = new Ingredient(
-                1, "Fromage", 3000.0, CategoryEnum.ANIMAL, pizza
-        );
-
-        Ingredient flour = new Ingredient(
-                2, "Farine", 1000.0, CategoryEnum.VEGETABLE, pizza
-        );
-
-        // 3️⃣ Création des DishIngredient
-        DishIngredient di1 = new DishIngredient(
-                1, pizza, cheese, 1, UnitType.PCS
-        );
-
-        DishIngredient di2 = new DishIngredient(
-                2, pizza, flour, 2, UnitType.PCS
-        );
-
-        // 4️⃣ Ajout des ingrédients au plat
-        pizza.addDishIngredient(di1);
-        pizza.addDishIngredient(di2);
-
-        // 5️⃣ Sauvegarde en base
-        dr.saveDish(pizza);
-
-        System.out.println("Plat sauvegardé : " + pizza);
-
-        // 6️⃣ Récupération depuis la base
-        Dish savedDish = dr.findDishById(pizza.getId());
-
-        System.out.println("Plat récupéré depuis la base : " + savedDish);
-
-        // 7️⃣ Affichage marge brute
-        System.out.println("Marge brute : " + savedDish.getGrossMargin());
     }
 
 
 
 
 
-    }
+
 
 
 
