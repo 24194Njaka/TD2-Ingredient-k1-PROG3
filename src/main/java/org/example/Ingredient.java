@@ -73,27 +73,28 @@ public class Ingredient {
 
 
 
-
     public StockValue getStockValueAt(Instant t) {
-        double totalQuantity = 0.0;
+        double totalQuantityInKg = 0.0;
 
-        for (StockMovement sm : stockMovementList) {
+        // On parcourt la liste des mouvements de CET ingrédient
+        for (StockMovement sm : this.stockMovementList) {
             if (!sm.getCreationDatetime().isAfter(t)) {
+                // On utilise le nom de CET ingrédient (this.name) pour la conversion
+                double quantityInKg = UnitConverter.convertToKg(
+                        this.name,
+                        sm.getValue().getQuantity(),
+                        sm.getValue().getUnit()
+                );
+
                 if (sm.getType() == MovementTypeEnum.IN) {
-                    totalQuantity += sm.getValue().getQuantity(); // Entrée
-                } else if (sm.getType() == MovementTypeEnum.OUT) {
-                    totalQuantity -= sm.getValue().getQuantity(); // Sortie
+                    totalQuantityInKg += quantityInKg;
+                } else {
+                    totalQuantityInKg -= quantityInKg;
                 }
             }
         }
-        // Par défaut, l'unité est KG selon le sujet
-        return new StockValue(totalQuantity, UnitType.KG);
+        return new StockValue(totalQuantityInKg, UnitType.KG);
     }
-
-
-
-
-
 
     public List<StockMovement> getStockMovementList() {
         return stockMovementList;

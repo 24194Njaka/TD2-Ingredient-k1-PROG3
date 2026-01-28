@@ -230,47 +230,44 @@ public class DataRetriever {
         return ingredient;
     }
 
+
     public Order saveOrder(Order orderToSave) {
-        // 1. Vérification des stocks avant toute action (Logique métier)
+        // 1. VÉRIFICATION DES STOCKS AVEC CONVERSION
         for (DishOrder doObj : orderToSave.getDishOrders()) {
             for (DishIngredient di : doObj.getDish().getIngredients()) {
-                double totalNeeded = doObj.getQuantity() * di.getQuantityRequired();
-                double currentStock = di.getIngredient().getStockValueAt(Instant.now()).getQuantity();
+                // Quantité requise par la recette (déjà en KG selon le sujet)
+                double recipeQtyInKg = di.getQuantityRequired();
+                // Besoin total pour la commande du client
+                double totalNeededInKg = doObj.getQuantity() * recipeQtyInKg;
 
-                if (currentStock < totalNeeded) {
-                    // Conformément au sujet : levée d'exception avec le nom de l'ingrédient
+                // Stock actuel calculé avec conversion des mouvements passés
+                double currentStockInKg = di.getIngredient().getStockValueAt(Instant.now()).getQuantity();
+
+                if (currentStockInKg < totalNeededInKg) {
                     throw new RuntimeException("Stock insuffisant pour l'ingrédient : " +
                             di.getIngredient().getName());
                 }
             }
         }
 
-        // 2. Sauvegarde en base de données
-        String insertOrderSql = "INSERT INTO \"order\" (reference, creation_datetime) VALUES (?, ?) RETURNING id";
-        String insertDishOrderSql = "INSERT INTO dish_order (id_order, id_dish, quantity) VALUES (?, ?, ?)";
-
-        // Déclaration de la connexion à l'extérieur pour qu'elle soit accessible au bloc catch
+        // 2. SAUVEGARDE EN BASE DE DONNÉES (Transactionnelle)
         Connection conn = null;
         try {
             conn = DBConnection.getDBConnection();
-            conn.setAutoCommit(false); // Début de la transaction
+            conn.setAutoCommit(false);
 
-            // Insertion de la Commande (Order)
-            try (PreparedStatement ps = conn.prepareStatement(insertOrderSql, Statement.RETURN_GENERATED_KEYS)) {
+            String sqlOrder = "INSERT INTO \"order\" (reference, creation_datetime) VALUES (?, ?) RETURNING id";
+            try (PreparedStatement ps = conn.prepareStatement(sqlOrder, Statement.RETURN_GENERATED_KEYS)) {
                 ps.setString(1, orderToSave.getReference());
-                ps.setTimestamp(2, Timestamp.from(orderToSave.getCreationDatetime() != null ?
-                        orderToSave.getCreationDatetime() : Instant.now()));
+                ps.setTimestamp(2, Timestamp.from(orderToSave.getCreationDatetime()));
                 ps.executeUpdate();
-
                 try (ResultSet rs = ps.getGeneratedKeys()) {
-                    if (rs.next()) {
-                        orderToSave.setId(rs.getInt(1));
-                    }
+                    if (rs.next()) orderToSave.setId(rs.getInt(1));
                 }
             }
 
-            // Insertion des lignes de commande (DishOrder)
-            try (PreparedStatement ps = conn.prepareStatement(insertDishOrderSql)) {
+            String sqlDishOrder = "INSERT INTO dish_order (id_order, id_dish, quantity) VALUES (?, ?, ?)";
+            try (PreparedStatement ps = conn.prepareStatement(sqlDishOrder)) {
                 for (DishOrder doObj : orderToSave.getDishOrders()) {
                     ps.setInt(1, orderToSave.getId());
                     ps.setInt(2, doObj.getDish().getId());
@@ -280,31 +277,16 @@ public class DataRetriever {
                 ps.executeBatch();
             }
 
-            conn.commit(); // Validation de la transaction
+            conn.commit();
             return orderToSave;
-
         } catch (SQLException e) {
-            // Gestion du Rollback : On vérifie que la connexion existe avant d'annuler
-            if (conn != null) {
-                try {
-                    conn.rollback();
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                }
-            }
-            e.printStackTrace();
-            throw new RuntimeException("Erreur lors de l'insertion de la commande", e);
+            if (conn != null) try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            throw new RuntimeException("Échec de l'insertion : " + e.getMessage());
         } finally {
-            // Fermeture manuelle indispensable puisque nous n'utilisons plus le try-with-resources ici
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
+            if (conn != null) try { conn.close(); } catch (SQLException e) { e.printStackTrace(); }
         }
     }
+
 
     public Dish findDishById(Integer id) {
         String sql = """
@@ -360,6 +342,13 @@ public class DataRetriever {
             throw new RuntimeException("Erreur lors de la récupération du plat ID: " + id, e);
         }
     }
+
+
+
+}
+
+
+
 
 
 
@@ -507,5 +496,5 @@ public class DataRetriever {
 //
 //        return result;
 //    }
-}
+//}
 

@@ -50,4 +50,8 @@ public class StockMovement {
     public void setCreationDatetime(Instant creationDatetime) {
         this.creationDatetime = creationDatetime;
     }
+
+
+
+
 }

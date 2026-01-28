@@ -277,71 +277,109 @@ public class Main {
 //        }
 
         // --- 1. CONFIGURATION DES INGRÉDIENTS ET STOCKS ---
-        // Laitue : Prix 800, Stock Initial 5.0 [cite: 56]
+//        // Laitue : Prix 800, Stock Initial 5.0 [cite: 56]
+//        Ingredient laitue = new Ingredient(1, "Laitue", 800.0, CategoryEnum.VEGETABLE);
+//        StockMovement mvtLaitue = new StockMovement();
+//        mvtLaitue.setId(101);
+//        mvtLaitue.setType(MovementTypeEnum.IN);
+//        mvtLaitue.setValue(new StockValue(5.0, UnitType.KG));
+//        mvtLaitue.setCreationDatetime(Instant.now());
+//        laitue.addStockMovement(mvtLaitue);
+//
+//        // Tomate : Prix 500, Stock Initial 4.0 [cite: 56]
+//        Ingredient tomate = new Ingredient(2, "Tomate", 500.0, CategoryEnum.VEGETABLE);
+//        StockMovement mvtTomate = new StockMovement();
+//        mvtTomate.setId(102);
+//        mvtTomate.setType(MovementTypeEnum.IN);
+//        mvtTomate.setValue(new StockValue(4.0, UnitType.KG));
+//        mvtTomate.setCreationDatetime(Instant.now());
+//        tomate.addStockMovement(mvtTomate);
+//
+//        // --- 2. CRÉATION DU PLAT ---
+//        // Salade fraîche : Prix de vente 3500
+//        Dish salade = new Dish(1, "Salade fraîche", DishTypeEnum.STARTER);
+//        salade.setPrice(3500.0);
+//
+//        // Composition : 1kg Laitue + 0.5kg Tomate
+//        salade.addDishIngredient(new DishIngredient(null, salade, laitue, 1.0, UnitType.KG));
+//        salade.addDishIngredient(new DishIngredient(null, salade, tomate, 0.5, UnitType.KG));
+//
+//        // --- 3. CRÉATION D'UNE COMMANDE ---
+//        Order maCommande = new Order();
+//        maCommande.setReference("ORD00002");
+//        maCommande.setCreationDatetime(Instant.now());
+//
+//        DishOrder ligne1 = new DishOrder(null, salade, 3);
+//        maCommande.addDishOrder(ligne1);
+//
+//        // --- 4. EXÉCUTION DU TEST ---
+//        System.out.println("=== TEST DE SAUVEGARDE DE COMMANDE ===");
+//        System.out.println("Référence : " + maCommande.getReference());
+//        System.out.println("Montant HT : " + maCommande.getTotalAmountWithoutVAT() + " Ar");
+//        System.out.println("Montant TTC (20%) : " + maCommande.getTotalAmountWithVAT() + " Ar");
+//
+//        try {
+//            // Tentative de sauvegarde avec vérification de stock intégrée
+//            dr.saveOrder(maCommande);
+//            System.out.println("Commande enregistrée avec succès !");
+//        } catch (RuntimeException e) {
+//            System.err.println("ÉCHEC : " + e.getMessage());
+//        }
+//
+//        // --- 5. TEST DE RUPTURE DE STOCK ---
+//        System.out.println("\n=== TEST DE RUPTURE DE STOCK ===");
+//        Order commandeTropGrosse = new Order();
+//        commandeTropGrosse.setReference("ORD00002");
+//        commandeTropGrosse.setCreationDatetime(Instant.now());
+//
+//        // On commande 10 Salades (Besoin 10kg Laitue > Stock 5.0kg)
+//        commandeTropGrosse.addDishOrder(new DishOrder(null, salade, 10));
+//
+//        try {
+//            dr.saveOrder(commandeTropGrosse);
+//        } catch (RuntimeException e) {
+//            System.out.println("Test réussi, exception levée : " + e.getMessage());
+//        }
+
+        System.out.println("=== TEST DES CONVERSIONS D'UNITÉS ===");
+
+        // 1. INITIALISATION DES DONNÉES (Rappel du stock initial)
         Ingredient laitue = new Ingredient(1, "Laitue", 800.0, CategoryEnum.VEGETABLE);
-        StockMovement mvtLaitue = new StockMovement();
-        mvtLaitue.setId(101);
-        mvtLaitue.setType(MovementTypeEnum.IN);
-        mvtLaitue.setValue(new StockValue(5.0, UnitType.KG));
-        mvtLaitue.setCreationDatetime(Instant.now());
-        laitue.addStockMovement(mvtLaitue);
+        laitue.addStockMovement(new StockMovement(1, new StockValue(5.0, UnitType.KG), MovementTypeEnum.IN, Instant.now()));
 
-        // Tomate : Prix 500, Stock Initial 4.0 [cite: 56]
         Ingredient tomate = new Ingredient(2, "Tomate", 500.0, CategoryEnum.VEGETABLE);
-        StockMovement mvtTomate = new StockMovement();
-        mvtTomate.setId(102);
-        mvtTomate.setType(MovementTypeEnum.IN);
-        mvtTomate.setValue(new StockValue(4.0, UnitType.KG));
-        mvtTomate.setCreationDatetime(Instant.now());
-        tomate.addStockMovement(mvtTomate);
+        tomate.addStockMovement(new StockMovement(2, new StockValue(4.0, UnitType.KG), MovementTypeEnum.IN, Instant.now()));
 
-        // --- 2. CRÉATION DU PLAT ---
-        // Salade fraîche : Prix de vente 3500
-        Dish salade = new Dish(1, "Salade fraîche", DishTypeEnum.STARTER);
-        salade.setPrice(3500.0);
+        Ingredient chocolat = new Ingredient(3, "Chocolat", 1200.0, CategoryEnum.VEGETABLE);
+        chocolat.addStockMovement(new StockMovement(3, new StockValue(3.0, UnitType.KG), MovementTypeEnum.IN, Instant.now()));
 
-        // Composition : 1kg Laitue + 0.5kg Tomate
-        salade.addDishIngredient(new DishIngredient(null, salade, laitue, 1.0, UnitType.KG));
-        salade.addDishIngredient(new DishIngredient(null, salade, tomate, 0.5, UnitType.KG));
+        // 2. AJOUT DES MOUVEMENTS "OUT" AVEC UNITÉS DIFFÉRENTES
+        // Laitue : Sortie 2 PCS (Doit devenir 1.0 KG car 1 KG = 2 PCS)
+        laitue.addStockMovement(new StockMovement(4, new StockValue(2.0, UnitType.PCS), MovementTypeEnum.OUT, Instant.now()));
 
-        // --- 3. CRÉATION D'UNE COMMANDE ---
-        Order maCommande = new Order();
-        maCommande.setReference("ORD00002");
-        maCommande.setCreationDatetime(Instant.now());
+        // Tomate : Sortie 5 PCS (Doit devenir 0.5 KG car 1 KG = 10 PCS)
+        tomate.addStockMovement(new StockMovement(5, new StockValue(5.0, UnitType.PCS), MovementTypeEnum.OUT, Instant.now()));
 
-        DishOrder ligne1 = new DishOrder(null, salade, 3);
-        maCommande.addDishOrder(ligne1);
+        // Chocolat : Sortie 1 L (Doit devenir 0.4 KG car 1 KG = 2.5 L)
+        chocolat.addStockMovement(new StockMovement(6, new StockValue(1.0, UnitType.L), MovementTypeEnum.OUT, Instant.now()));
 
-        // --- 4. EXÉCUTION DU TEST ---
-        System.out.println("=== TEST DE SAUVEGARDE DE COMMANDE ===");
-        System.out.println("Référence : " + maCommande.getReference());
-        System.out.println("Montant HT : " + maCommande.getTotalAmountWithoutVAT() + " Ar");
-        System.out.println("Montant TTC (20%) : " + maCommande.getTotalAmountWithVAT() + " Ar");
-
-        try {
-            // Tentative de sauvegarde avec vérification de stock intégrée
-            dr.saveOrder(maCommande);
-            System.out.println("Commande enregistrée avec succès !");
-        } catch (RuntimeException e) {
-            System.err.println("ÉCHEC : " + e.getMessage());
-        }
-
-        // --- 5. TEST DE RUPTURE DE STOCK ---
-        System.out.println("\n=== TEST DE RUPTURE DE STOCK ===");
-        Order commandeTropGrosse = new Order();
-        commandeTropGrosse.setReference("ORD00002");
-        commandeTropGrosse.setCreationDatetime(Instant.now());
-
-        // On commande 10 Salades (Besoin 10kg Laitue > Stock 5.0kg)
-        commandeTropGrosse.addDishOrder(new DishOrder(null, salade, 10));
-
-        try {
-            dr.saveOrder(commandeTropGrosse);
-        } catch (RuntimeException e) {
-            System.out.println("Test réussi, exception levée : " + e.getMessage());
-        }
+        // 3. VÉRIFICATION DES RÉSULTATS ATTENDUS
+        printResult("Laitue", laitue.getStockValueAt(Instant.now()), 4.0);
+        printResult("Tomate", tomate.getStockValueAt(Instant.now()), 3.5);
+        printResult("Chocolat", chocolat.getStockValueAt(Instant.now()), 2.6);
     }
+
+    private static void printResult(String name, StockValue result, double expected) {
+        System.out.printf("Ingrédient: %s | Obtenu: %.1f KG | Attendu: %.1f KG | %s%n",
+                name, result.getQuantity(), expected,
+                (Math.abs(result.getQuantity() - expected) < 0.01 ? " OK" : "ERREUR"));
+    }
+
+
+
+
 }
+
 
 
 
