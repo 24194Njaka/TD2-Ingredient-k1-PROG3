@@ -232,7 +232,6 @@ public class DataRetriever {
 
 
     public Order saveOrder(Order orderToSave) {
-        // 1. VÉRIFICATION DES STOCKS AVEC CONVERSION
         for (DishOrder doObj : orderToSave.getDishOrders()) {
             for (DishIngredient di : doObj.getDish().getIngredients()) {
                 // Quantité requise par la recette (déjà en KG selon le sujet)
@@ -240,7 +239,7 @@ public class DataRetriever {
                 // Besoin total pour la commande du client
                 double totalNeededInKg = doObj.getQuantity() * recipeQtyInKg;
 
-                // Stock actuel calculé avec conversion des mouvements passés
+                // Stock @ zao calculé avec conversion des mouvements taloha
                 double currentStockInKg = di.getIngredient().getStockValueAt(Instant.now()).getQuantity();
 
                 if (currentStockInKg < totalNeededInKg) {
@@ -250,7 +249,7 @@ public class DataRetriever {
             }
         }
 
-        // 2. SAUVEGARDE EN BASE DE DONNÉES (Transactionnelle)
+        // sau
         Connection conn = null;
         try {
             conn = DBConnection.getDBConnection();

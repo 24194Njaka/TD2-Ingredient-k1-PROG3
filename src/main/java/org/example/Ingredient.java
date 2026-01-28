@@ -22,12 +22,11 @@ public class Ingredient {
         this.dish = dish;
     }
 
-    // Méthode demandée explicitement
     public String getDishName() {
         return dish != null ? dish.getName() : null;
     }
 
-    // Getters & Setters
+    // Getters  ary Setters
     public Integer getId() {
         return id;
     }
@@ -72,14 +71,11 @@ public class Ingredient {
     }
 
 
-
     public StockValue getStockValueAt(Instant t) {
-        double totalQuantityInKg = 0.0;
 
-        // On parcourt la liste des mouvements de CET ingrédient
+        double totalQuantityInKg = 0.0;
         for (StockMovement sm : this.stockMovementList) {
             if (!sm.getCreationDatetime().isAfter(t)) {
-                // On utilise le nom de CET ingrédient (this.name) pour la conversion
                 double quantityInKg = UnitConverter.convertToKg(
                         this.name,
                         sm.getValue().getQuantity(),
@@ -116,7 +112,5 @@ public class Ingredient {
                 ", dish=" + (dish != null ? dish.getName() : null) +
                 '}';
     }
-
-
 }
 

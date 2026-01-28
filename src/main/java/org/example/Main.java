@@ -329,7 +329,7 @@ public class Main {
 //        // --- 5. TEST DE RUPTURE DE STOCK ---
 //        System.out.println("\n=== TEST DE RUPTURE DE STOCK ===");
 //        Order commandeTropGrosse = new Order();
-//        commandeTropGrosse.setReference("ORD00002");
+//        commandeTropGrosse.setReference("ORD00003");
 //        commandeTropGrosse.setCreationDatetime(Instant.now());
 //
 //        // On commande 10 Salades (Besoin 10kg Laitue > Stock 5.0kg)
@@ -341,29 +341,20 @@ public class Main {
 //            System.out.println("Test réussi, exception levée : " + e.getMessage());
 //        }
 
-        System.out.println("=== TEST DES CONVERSIONS D'UNITÉS ===");
 
-        // 1. INITIALISATION DES DONNÉES (Rappel du stock initial)
+
+        // 1. INITIALISATION DES DONNÉES
         Ingredient laitue = new Ingredient(1, "Laitue", 800.0, CategoryEnum.VEGETABLE);
         laitue.addStockMovement(new StockMovement(1, new StockValue(5.0, UnitType.KG), MovementTypeEnum.IN, Instant.now()));
-
         Ingredient tomate = new Ingredient(2, "Tomate", 500.0, CategoryEnum.VEGETABLE);
         tomate.addStockMovement(new StockMovement(2, new StockValue(4.0, UnitType.KG), MovementTypeEnum.IN, Instant.now()));
-
         Ingredient chocolat = new Ingredient(3, "Chocolat", 1200.0, CategoryEnum.VEGETABLE);
+
+
         chocolat.addStockMovement(new StockMovement(3, new StockValue(3.0, UnitType.KG), MovementTypeEnum.IN, Instant.now()));
-
-        // 2. AJOUT DES MOUVEMENTS "OUT" AVEC UNITÉS DIFFÉRENTES
-        // Laitue : Sortie 2 PCS (Doit devenir 1.0 KG car 1 KG = 2 PCS)
         laitue.addStockMovement(new StockMovement(4, new StockValue(2.0, UnitType.PCS), MovementTypeEnum.OUT, Instant.now()));
-
-        // Tomate : Sortie 5 PCS (Doit devenir 0.5 KG car 1 KG = 10 PCS)
         tomate.addStockMovement(new StockMovement(5, new StockValue(5.0, UnitType.PCS), MovementTypeEnum.OUT, Instant.now()));
-
-        // Chocolat : Sortie 1 L (Doit devenir 0.4 KG car 1 KG = 2.5 L)
         chocolat.addStockMovement(new StockMovement(6, new StockValue(1.0, UnitType.L), MovementTypeEnum.OUT, Instant.now()));
-
-        // 3. VÉRIFICATION DES RÉSULTATS ATTENDUS
         printResult("Laitue", laitue.getStockValueAt(Instant.now()), 4.0);
         printResult("Tomate", tomate.getStockValueAt(Instant.now()), 3.5);
         printResult("Chocolat", chocolat.getStockValueAt(Instant.now()), 2.6);
