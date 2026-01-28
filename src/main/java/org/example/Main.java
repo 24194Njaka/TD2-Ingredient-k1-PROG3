@@ -2,6 +2,9 @@ package org.example;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -188,51 +191,96 @@ public class Main {
 
 
 
-        Ingredient laitue = new Ingredient(1, "Laitue", 100.0, CategoryEnum.VEGETABLE, null);
-        Ingredient tomate = new Ingredient(2, "Tomate", 75.0, CategoryEnum.VEGETABLE, null);
+//        Ingredient laitue = new Ingredient(1, "Laitue", 100.0, CategoryEnum.VEGETABLE, null);
+//        Ingredient tomate = new Ingredient(2, "Tomate", 75.0, CategoryEnum.VEGETABLE, null);
+//
+//        // Pour Poulet Grillé (Coût 4500): Poulet (4500) * 1 = 4500
+//        Ingredient poulet = new Ingredient(3, "Poulet", 4500.0, CategoryEnum.ANIMAL, null);
+//
+//        // 2. Création du Plat : Salade Fraîche
+//        Dish salade = new Dish(1, "Salade fraîche", DishTypeEnum.STARTER);
+//        salade.setPrice(3500.0); // Prix selon l'image 1
+//        salade.addDishIngredient(new DishIngredient(null, salade, laitue, 1.0, UnitType.PCS));
+//        salade.addDishIngredient(new DishIngredient(null, salade, tomate, 2.0, UnitType.PCS));
+//
+//        // 3. Création du Plat : Poulet Grillé
+//        Dish pouletGrille = new Dish(2, "Poulet grillé", DishTypeEnum.MAIN);
+//        pouletGrille.setPrice(12000.0); // Prix selon l'image 1
+//        pouletGrille.addDishIngredient(new DishIngredient(null, pouletGrille, poulet, 1.0, UnitType.KG));
+//
+//        // 4. Création du Plat : Riz aux légumes (Prix NULL)
+//        Dish riz = new Dish(3, "Riz aux légumes", DishTypeEnum.MAIN);
+//        riz.setPrice(null); // Doit lever une exception pour la marge
+//
+//        // --- SAUVEGARDE ET TESTS ---
+//
+//        System.out.println("=== TEST DES RÉSULTATS ATTENDUS ===\n");
+//
+//        testPlat(salade);
+//        testPlat(pouletGrille);
+//        testPlat(riz);
+//    }
+//
+//    private static void testPlat(Dish dish) {
+//        System.out.println("Plat : " + dish.getName());
+//        System.out.println("  > Coût calculé : " + dish.getDishCost()); // Attendu: 250.0 pour salade
+//
+//        try {
+//            System.out.println("  > Marge brute  : " + dish.getGrossMargin()); // Attendu: 3250.0 pour salade
+//        } catch (IllegalStateException e) {
+//            System.out.println("  > Marge brute  : EXCEPTION (Prix NULL)");
+//        }
+//        System.out.println("-----------------------------------");
 
-        // Pour Poulet Grillé (Coût 4500): Poulet (4500) * 1 = 4500
-        Ingredient poulet = new Ingredient(3, "Poulet", 4500.0, CategoryEnum.ANIMAL, null);
 
-        // 2. Création du Plat : Salade Fraîche
-        Dish salade = new Dish(1, "Salade fraîche", DishTypeEnum.STARTER);
-        salade.setPrice(3500.0); // Prix selon l'image 1
-        salade.addDishIngredient(new DishIngredient(null, salade, laitue, 1.0, UnitType.PCS));
-        salade.addDishIngredient(new DishIngredient(null, salade, tomate, 2.0, UnitType.PCS));
 
-        // 3. Création du Plat : Poulet Grillé
-        Dish pouletGrille = new Dish(2, "Poulet grillé", DishTypeEnum.MAIN);
-        pouletGrille.setPrice(12000.0); // Prix selon l'image 1
-        pouletGrille.addDishIngredient(new DishIngredient(null, pouletGrille, poulet, 1.0, UnitType.KG));
 
-        // 4. Création du Plat : Riz aux légumes (Prix NULL)
-        Dish riz = new Dish(3, "Riz aux légumes", DishTypeEnum.MAIN);
-        riz.setPrice(null); // Doit lever une exception pour la marge
 
-        // --- SAUVEGARDE ET TESTS ---
+        Ingredient laitue = new Ingredient(1, "Laitue", 800.0, CategoryEnum.VEGETABLE);
 
-        System.out.println("=== TEST DES RÉSULTATS ATTENDUS ===\n");
+        // 2. Création des mouvements de stock (selon le tableau du sujet)
+        // Mouvement 1 : Entrée de 5.0 KG le 2024-01-05
+        StockMovement mvtIn = new StockMovement();
+        mvtIn.setId(1);
+        mvtIn.setType(MovementTypeEnum.IN);
+        mvtIn.setValue(new StockValue(5.0, UnitType.KG));
+        mvtIn.setCreationDatetime(LocalDateTime.of(2024, 1, 5, 8, 0)
+                .toInstant(ZoneOffset.UTC));
 
-        testPlat(salade);
-        testPlat(pouletGrille);
-        testPlat(riz);
-    }
+        // Mouvement 2 : Sortie de 0.2 KG le 2024-01-06 à 12h00
+        StockMovement mvtOut = new StockMovement();
+        mvtOut.setId(6); // ID 6 selon le tableau de test
+        mvtOut.setType(MovementTypeEnum.OUT);
+        mvtOut.setValue(new StockValue(0.2, UnitType.KG));
+        mvtOut.setCreationDatetime(LocalDateTime.of(2024, 1, 6, 12, 0)
+                .toInstant(ZoneOffset.UTC));
 
-    private static void testPlat(Dish dish) {
-        System.out.println("Plat : " + dish.getName());
-        System.out.println("  > Coût calculé : " + dish.getDishCost()); // Attendu: 250.0 pour salade
+        // 3. Ajout des mouvements à l'ingrédient
+        laitue.addStockMovement(mvtIn);
+        laitue.addStockMovement(mvtOut);
+        dr.saveIngredient(laitue);
 
-        try {
-            System.out.println("  > Marge brute  : " + dish.getGrossMargin()); // Attendu: 3250.0 pour salade
-        } catch (IllegalStateException e) {
-            System.out.println("  > Marge brute  : EXCEPTION (Prix NULL)");
+        // 5. TEST DU CALCUL (Instant t = 2024-01-06 12:00)
+        Instant tTest = LocalDateTime.of(2024, 1, 6, 12, 0).toInstant(ZoneOffset.UTC);
+        StockValue stockActuel = laitue.getStockValueAt(tTest);
+
+        System.out.println("=== TEST GESTION DE STOCKS ===");
+        System.out.println("Ingrédient : " + laitue.getName());
+        System.out.println("Date du test : 2024-01-06 12:00");
+        System.out.println("Stock calculé : " + stockActuel.getQuantity() + " " + stockActuel.getUnit());
+
+        // Vérification du résultat attendu
+        if (stockActuel.getQuantity() == 4.8) {
+            System.out.println(" SUCCÈS : Le stock correspond au calcul (5.0 - 0.2 = 4.8)");
+        } else {
+            System.out.println(" ERREUR : Valeur attendue 4.8, obtenue " + stockActuel.getQuantity());
         }
-        System.out.println("-----------------------------------");
+    }
     }
 
 
 
-    }
+
 
 
 

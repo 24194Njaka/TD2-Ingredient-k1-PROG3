@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.math.BigDecimal;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class DataRetriever {
 
@@ -60,8 +59,7 @@ public class DataRetriever {
                             rs.getInt("ingredient_id"),
                             rs.getString("ingredient_name"),
                             rs.getDouble("ingredient_price"),
-                            CategoryEnum.valueOf(rs.getString("ingredient_category")),
-                            dish
+                            CategoryEnum.valueOf(rs.getString("ingredient_category"))
                     );
 
                     ingredients.add(ingredient);
@@ -206,6 +204,34 @@ public class DataRetriever {
     }
 
 
+    public Ingredient saveIngredient(Ingredient ingredient) {
+        // 1. Sauvegarde/Mise à jour de l'ingrédient (code déjà fait précédemment)
+
+        // 2. Sauvegarde des mouvements de stock
+        String sqlMvt = "INSERT INTO stock_movement (id, id_ingredient, quantity, type, unit, creation_datetime) " +
+                "VALUES (?, ?, ?, ?::mouvement_type, ?::unit_type, ?) " +
+                "ON CONFLICT (id) DO NOTHING";
+
+        try (Connection conn = DBConnection.getDBConnection();
+             PreparedStatement ps = conn.prepareStatement(sqlMvt)) {
+
+            for (StockMovement sm : ingredient.getStockMovementList()) {
+                ps.setInt(1, sm.getId());
+                ps.setInt(2, ingredient.getId());
+                ps.setDouble(3, sm.getValue().getQuantity());
+                ps.setString(4, sm.getType().name());
+                ps.setString(5, sm.getValue().getUnit().name());
+                ps.setTimestamp(6, Timestamp.from(sm.getCreationDatetime()));
+                ps.addBatch();
+            }
+            ps.executeBatch();
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur sauvegarde mouvements", e);
+        }
+        return ingredient;
+    }
+
+
 
 
     public Dish findDishById(Integer id) {
@@ -244,8 +270,7 @@ public class DataRetriever {
                             ingId,
                             rs.getString("ing_name"),
                             rs.getDouble("ing_price"),
-                            CategoryEnum.valueOf(rs.getString("category")),
-                            dish
+                            CategoryEnum.valueOf(rs.getString("category"))
                     );
 
                     DishIngredient di = new DishIngredient(

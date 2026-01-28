@@ -1,6 +1,9 @@
 package org.example;
 
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Ingredient {
     private Integer id;
@@ -8,9 +11,10 @@ public class Ingredient {
     private Double price;
     private CategoryEnum category;
     private   Dish dish;
+    private List<StockMovement> stockMovementList = new ArrayList<>();
 
 
-    public Ingredient(Integer id, String name, Double price, CategoryEnum category, Dish dish) {
+    public Ingredient(Integer id, String name, Double price, CategoryEnum category) {
         this.id = id;
         this.name = name;
         this.price = price;
@@ -70,6 +74,37 @@ public class Ingredient {
 
 
 
+    public StockValue getStockValueAt(Instant t) {
+        double totalQuantity = 0.0;
+
+        for (StockMovement sm : stockMovementList) {
+            if (!sm.getCreationDatetime().isAfter(t)) {
+                if (sm.getType() == MovementTypeEnum.IN) {
+                    totalQuantity += sm.getValue().getQuantity(); // Entrée
+                } else if (sm.getType() == MovementTypeEnum.OUT) {
+                    totalQuantity -= sm.getValue().getQuantity(); // Sortie
+                }
+            }
+        }
+        // Par défaut, l'unité est KG selon le sujet
+        return new StockValue(totalQuantity, UnitType.KG);
+    }
+
+
+
+
+
+
+    public List<StockMovement> getStockMovementList() {
+        return stockMovementList;
+    }
+
+    public void addStockMovement(StockMovement sm) {
+        this.stockMovementList.add(sm);
+    }
+
+
+
     @Override
     public String toString() {
         return "Ingredient{" +
@@ -80,6 +115,7 @@ public class Ingredient {
                 ", dish=" + (dish != null ? dish.getName() : null) +
                 '}';
     }
+
 
 }
 
