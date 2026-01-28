@@ -236,47 +236,115 @@ public class Main {
 
 
 
+//        Ingredient laitue = new Ingredient(1, "Laitue", 800.0, CategoryEnum.VEGETABLE);
+//
+//        // 2. Création des mouvements de stock (selon le tableau du sujet)
+//        // Mouvement 1 : Entrée de 5.0 KG le 2024-01-05
+//        StockMovement mvtIn = new StockMovement();
+//        mvtIn.setId(1);
+//        mvtIn.setType(MovementTypeEnum.IN);
+//        mvtIn.setValue(new StockValue(5.0, UnitType.KG));
+//        mvtIn.setCreationDatetime(LocalDateTime.of(2024, 1, 5, 8, 0)
+//                .toInstant(ZoneOffset.UTC));
+//
+//        // Mouvement 2 : Sortie de 0.2 KG le 2024-01-06 à 12h00
+//        StockMovement mvtOut = new StockMovement();
+//        mvtOut.setId(6); // ID 6 selon le tableau de test
+//        mvtOut.setType(MovementTypeEnum.OUT);
+//        mvtOut.setValue(new StockValue(0.2, UnitType.KG));
+//        mvtOut.setCreationDatetime(LocalDateTime.of(2024, 1, 6, 12, 0)
+//                .toInstant(ZoneOffset.UTC));
+//
+//        // 3. Ajout des mouvements à l'ingrédient
+//        laitue.addStockMovement(mvtIn);
+//        laitue.addStockMovement(mvtOut);
+//        dr.saveIngredient(laitue);
+//
+//        // 5. TEST DU CALCUL (Instant t = 2024-01-06 12:00)
+//        Instant tTest = LocalDateTime.of(2024, 1, 6, 12, 0).toInstant(ZoneOffset.UTC);
+//        StockValue stockActuel = laitue.getStockValueAt(tTest);
+//
+//        System.out.println("=== TEST GESTION DE STOCKS ===");
+//        System.out.println("Ingrédient : " + laitue.getName());
+//        System.out.println("Date du test : 2024-01-06 12:00");
+//        System.out.println("Stock calculé : " + stockActuel.getQuantity() + " " + stockActuel.getUnit());
+//
+//        // Vérification du résultat attendu
+//        if (stockActuel.getQuantity() == 4.8) {
+//            System.out.println(" SUCCÈS : Le stock correspond au calcul (5.0 - 0.2 = 4.8)");
+//        } else {
+//            System.out.println(" ERREUR : Valeur attendue 4.8, obtenue " + stockActuel.getQuantity());
+//        }
+
+        // --- 1. CONFIGURATION DES INGRÉDIENTS ET STOCKS ---
+        // Laitue : Prix 800, Stock Initial 5.0 [cite: 56]
         Ingredient laitue = new Ingredient(1, "Laitue", 800.0, CategoryEnum.VEGETABLE);
+        StockMovement mvtLaitue = new StockMovement();
+        mvtLaitue.setId(101);
+        mvtLaitue.setType(MovementTypeEnum.IN);
+        mvtLaitue.setValue(new StockValue(5.0, UnitType.KG));
+        mvtLaitue.setCreationDatetime(Instant.now());
+        laitue.addStockMovement(mvtLaitue);
 
-        // 2. Création des mouvements de stock (selon le tableau du sujet)
-        // Mouvement 1 : Entrée de 5.0 KG le 2024-01-05
-        StockMovement mvtIn = new StockMovement();
-        mvtIn.setId(1);
-        mvtIn.setType(MovementTypeEnum.IN);
-        mvtIn.setValue(new StockValue(5.0, UnitType.KG));
-        mvtIn.setCreationDatetime(LocalDateTime.of(2024, 1, 5, 8, 0)
-                .toInstant(ZoneOffset.UTC));
+        // Tomate : Prix 500, Stock Initial 4.0 [cite: 56]
+        Ingredient tomate = new Ingredient(2, "Tomate", 500.0, CategoryEnum.VEGETABLE);
+        StockMovement mvtTomate = new StockMovement();
+        mvtTomate.setId(102);
+        mvtTomate.setType(MovementTypeEnum.IN);
+        mvtTomate.setValue(new StockValue(4.0, UnitType.KG));
+        mvtTomate.setCreationDatetime(Instant.now());
+        tomate.addStockMovement(mvtTomate);
 
-        // Mouvement 2 : Sortie de 0.2 KG le 2024-01-06 à 12h00
-        StockMovement mvtOut = new StockMovement();
-        mvtOut.setId(6); // ID 6 selon le tableau de test
-        mvtOut.setType(MovementTypeEnum.OUT);
-        mvtOut.setValue(new StockValue(0.2, UnitType.KG));
-        mvtOut.setCreationDatetime(LocalDateTime.of(2024, 1, 6, 12, 0)
-                .toInstant(ZoneOffset.UTC));
+        // --- 2. CRÉATION DU PLAT ---
+        // Salade fraîche : Prix de vente 3500
+        Dish salade = new Dish(1, "Salade fraîche", DishTypeEnum.STARTER);
+        salade.setPrice(3500.0);
 
-        // 3. Ajout des mouvements à l'ingrédient
-        laitue.addStockMovement(mvtIn);
-        laitue.addStockMovement(mvtOut);
-        dr.saveIngredient(laitue);
+        // Composition : 1kg Laitue + 0.5kg Tomate
+        salade.addDishIngredient(new DishIngredient(null, salade, laitue, 1.0, UnitType.KG));
+        salade.addDishIngredient(new DishIngredient(null, salade, tomate, 0.5, UnitType.KG));
 
-        // 5. TEST DU CALCUL (Instant t = 2024-01-06 12:00)
-        Instant tTest = LocalDateTime.of(2024, 1, 6, 12, 0).toInstant(ZoneOffset.UTC);
-        StockValue stockActuel = laitue.getStockValueAt(tTest);
+        // --- 3. CRÉATION D'UNE COMMANDE ---
+        Order maCommande = new Order();
+        maCommande.setReference("ORD00002");
+        maCommande.setCreationDatetime(Instant.now());
 
-        System.out.println("=== TEST GESTION DE STOCKS ===");
-        System.out.println("Ingrédient : " + laitue.getName());
-        System.out.println("Date du test : 2024-01-06 12:00");
-        System.out.println("Stock calculé : " + stockActuel.getQuantity() + " " + stockActuel.getUnit());
+        DishOrder ligne1 = new DishOrder(null, salade, 3);
+        maCommande.addDishOrder(ligne1);
 
-        // Vérification du résultat attendu
-        if (stockActuel.getQuantity() == 4.8) {
-            System.out.println(" SUCCÈS : Le stock correspond au calcul (5.0 - 0.2 = 4.8)");
-        } else {
-            System.out.println(" ERREUR : Valeur attendue 4.8, obtenue " + stockActuel.getQuantity());
+        // --- 4. EXÉCUTION DU TEST ---
+        System.out.println("=== TEST DE SAUVEGARDE DE COMMANDE ===");
+        System.out.println("Référence : " + maCommande.getReference());
+        System.out.println("Montant HT : " + maCommande.getTotalAmountWithoutVAT() + " Ar");
+        System.out.println("Montant TTC (20%) : " + maCommande.getTotalAmountWithVAT() + " Ar");
+
+        try {
+            // Tentative de sauvegarde avec vérification de stock intégrée
+            dr.saveOrder(maCommande);
+            System.out.println("Commande enregistrée avec succès !");
+        } catch (RuntimeException e) {
+            System.err.println("ÉCHEC : " + e.getMessage());
+        }
+
+        // --- 5. TEST DE RUPTURE DE STOCK ---
+        System.out.println("\n=== TEST DE RUPTURE DE STOCK ===");
+        Order commandeTropGrosse = new Order();
+        commandeTropGrosse.setReference("ORD00002");
+        commandeTropGrosse.setCreationDatetime(Instant.now());
+
+        // On commande 10 Salades (Besoin 10kg Laitue > Stock 5.0kg)
+        commandeTropGrosse.addDishOrder(new DishOrder(null, salade, 10));
+
+        try {
+            dr.saveOrder(commandeTropGrosse);
+        } catch (RuntimeException e) {
+            System.out.println("Test réussi, exception levée : " + e.getMessage());
         }
     }
-    }
+}
+
+
+
 
 
 

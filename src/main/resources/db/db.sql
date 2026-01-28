@@ -48,6 +48,19 @@ CREATE TABLE stock_movement (
                                 creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE "order" (
+                         id SERIAL PRIMARY KEY,
+                         reference VARCHAR(10) NOT NULL UNIQUE,
+                         creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE dish_order (
+                            id SERIAL PRIMARY KEY,
+                            id_order INT REFERENCES "order"(id),
+                            id_dish INT REFERENCES dish(id),
+                            quantity INTEGER NOT NULL CHECK (quantity > 0)
+);
+
 GRANT SELECT, INSERT, UPDATE, DELETE
       ON ALL TABLES IN SCHEMA public
           TO mini_dish_db_manager;
