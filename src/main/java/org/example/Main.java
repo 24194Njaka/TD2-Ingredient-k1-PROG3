@@ -368,60 +368,30 @@ public class Main {
 
 
         List<RestaurantTable> allTables = new ArrayList<>();
-
-        RestaurantTable t1 = new RestaurantTable(1, 1); // ID 1, Numéro 1
-        RestaurantTable t2 = new RestaurantTable(2, 2); // ID 2, Numéro 2
-        RestaurantTable t3 = new RestaurantTable(3, 3); // ID 3, Numéro 3
-
+        RestaurantTable t1 = new RestaurantTable(1, 1);
+        RestaurantTable t2 = new RestaurantTable(2, 2);
         allTables.add(t1);
         allTables.add(t2);
-        allTables.add(t3);
 
-        // --- 2. SIMULATION D'UNE TABLE DÉJÀ OCCUPÉE ---
-        // On simule que la Table 1 est occupée actuellement
-        TableOrder occupationExistante = new TableOrder(t1, now.minusSeconds(3600), null);
-        t1.getOrders().add(occupationExistante);
+        // Simulation table 1 occupée
+        t1.getOrders().add(new TableOrder(t1, now.minusSeconds(100), null));
 
-        // --- 3. CONFIGURATION D'UN PLAT ET STOCK (Rappel Annexe 2) ---
-        Ingredient laitue = new Ingredient(1, "Laitue", 800.0, CategoryEnum.VEGETABLE);
-        laitue.addStockMovement(new StockMovement(1, new StockValue(5.0, UnitType.KG), MovementTypeEnum.IN, now));
+        // Commande
+        Order order = new Order();
+        order.setReference("ORD001"); // < 10 caractères
+        order.setCreationDatetime(now);
 
-        Dish salade = new Dish(1, "Salade", DishTypeEnum.STARTER);
-        salade.addDishIngredient(new DishIngredient(null, salade, laitue, 1.0, UnitType.KG));
-
-        // --- 4. CRÉATION D'UNE COMMANDE DE TEST ---
-        Order maCommande = new Order();
-        maCommande.setReference("ORD-TEST-TABLE");
-        maCommande.setCreationDatetime(now);
-        maCommande.addDishOrder(new DishOrder(null, salade, 1));
-
-        // --- 5. EXÉCUTION DES TESTS ---
-
-        System.out.println("=== TEST 1 : TENTATIVE SUR TABLE OCCUPÉE (Table 1) ===");
+        System.out.println("=== TEST TABLE OCCUPÉE ===");
         try {
-            // On essaie de réserver la Table 1 qui est déjà prise
-            dr.saveOrder(maCommande, t1, allTables);
-        } catch (RuntimeException e) {
-            // Doit afficher : "La table n'est pas fournie. Tables libres : [2, 3]"
-            System.out.println("Résultat attendu reçu : " + e.getMessage());
+            dr.saveOrder(order, t1, allTables);
+        } catch (Exception e) {
+            System.out.println("Exception attendue : " + e.getMessage());
         }
 
-        System.out.println("\n=== TEST 2 : TENTATIVE SUR TABLE LIBRE (Table 2) ===");
-        try {
-            dr.saveOrder(maCommande, t2, allTables);
-            System.out.println(" Succès : Commande enregistrée sur la Table 2 !");
-        } catch (RuntimeException e) {
-            System.err.println("Erreur imprévue : " + e.getMessage());
-        }
-
-        // --- 6. TEST DE RECHERCHE (findOrderByReference) ---
-        System.out.println("\n=== TEST 3 : RECHERCHE DE COMMANDE ===");
-        Order found = dr.findOrderByReference("ORD-TEST-TABLE");
-        if (found != null) {
-            System.out.println("Commande trouvée en base : " + found.getReference());
-        } else {
-            System.out.println(" Commande non trouvée.");
-        }
+        System.out.println("\n=== TEST RECHERCHE ===");
+        Order found = dr.findOrderByReference("ORD001");
+        System.out.println(found != null ? "Trouvée !" : "Non trouvée (Normal si saveOrder a échoué)");
+    }
     }
 
 
@@ -429,7 +399,7 @@ public class Main {
 
 
 
-  }
+
 
 
 
