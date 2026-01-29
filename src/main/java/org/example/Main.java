@@ -366,33 +366,61 @@ public class Main {
 //                name, result.getQuantity(), expected,
 //                (Math.abs(result.getQuantity() - expected) < 0.01 ? " OK" : "ERREUR"));
 
-
+        // --- 1. INITIALISATION DES TABLES ---
         List<RestaurantTable> allTables = new ArrayList<>();
+        // Utilisation du constructeur corrigé (ID, Numéro)
         RestaurantTable t1 = new RestaurantTable(1, 1);
         RestaurantTable t2 = new RestaurantTable(2, 2);
+        RestaurantTable t3 = new RestaurantTable(3, 3);
+
         allTables.add(t1);
         allTables.add(t2);
+        allTables.add(t3);
 
-        // Simulation table 1 occupée
-        t1.getOrders().add(new TableOrder(t1, now.minusSeconds(100), null));
+        // --- 2. SIMULATION D'UNE OCCUPATION ---
+        // On occupe la Table 1 : arrivée il y a 10 min, pas encore de départ
+        TableOrder occupation = new TableOrder(t1, now.minusSeconds(600), null);
+        t1.getOrders().add(occupation);
 
-        // Commande
-        Order order = new Order();
-        order.setReference("ORD001"); // < 10 caractères
-        order.setCreationDatetime(now);
+        // --- 3. PRÉPARATION D'UNE COMMANDE DE TEST ---
+        Order maCommande = new Order();
+        maCommande.setReference("ORD-001"); // Référence courte pour éviter l'erreur VARCHAR(10)
+        maCommande.setCreationDatetime(now);
+        // Note: Assurez-vous d'avoir ajouté des plats et ingrédients à maCommande ici si vous voulez tester le stock
 
-        System.out.println("=== TEST TABLE OCCUPÉE ===");
+        // --- 4. EXÉCUTION DES TESTS ---
+
+        System.out.println("=== TEST 1 : TENTATIVE SUR TABLE OCCUPÉE (Table 1) ===");
         try {
-            dr.saveOrder(order, t1, allTables);
-        } catch (Exception e) {
-            System.out.println("Exception attendue : " + e.getMessage());
+            // Tentative sur la table 1 (occupée)
+            dr.saveOrder(maCommande, t1, allTables);
+        } catch (RuntimeException e) {
+            // Doit afficher : "La table n'est pas fournie. Tables libres : [2, 3]"
+            System.out.println("Résultat : " + e.getMessage());
         }
 
-        System.out.println("\n=== TEST RECHERCHE ===");
-        Order found = dr.findOrderByReference("ORD001");
-        System.out.println(found != null ? "Trouvée !" : "Non trouvée (Normal si saveOrder a échoué)");
+        System.out.println("\n=== TEST 2 : TENTATIVE SUR TABLE LIBRE (Table 2) ===");
+        try {
+            // Tentative sur la table 2 (libre)
+            Order result = dr.saveOrder(maCommande, t2, allTables);
+            System.out.println(" Succès : Commande enregistrée avec l'ID " + result.getId());
+        } catch (RuntimeException e) {
+            System.out.println(" Erreur : " + e.getMessage());
+        }
+
+        System.out.println("\n=== TEST 3 : RECHERCHE DE COMMANDE ===");
+        Order found = dr.findOrderByReference("ORD-001");
+        if (found != null) {
+            System.out.println(" Commande retrouvée : " + found.getReference());
+        } else {
+            System.out.println(" Commande non trouvée.");
+        }
     }
+
+
+
     }
+
 
 
 

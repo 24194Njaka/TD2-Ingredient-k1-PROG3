@@ -5,23 +5,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RestaurantTable {
-    private Integer id;
-    private Integer number;
-    private List<TableOrder> orders = new ArrayList<>(); // Historique des occupations
+    // Attributs obligatoires selon le SI
+    private Integer id; // Identifiant unique
+    private Integer number; // Numéro de table
+    private List<TableOrder> orders = new ArrayList<>(); // Liste des commandes associées
 
-
-    public RestaurantTable(Integer id, Integer number, List<TableOrder> orders) {
+    // Constructeur pour initialiser les données et éviter le "null"
+    public RestaurantTable(Integer id, Integer number) {
         this.id = id;
         this.number = number;
-        this.orders = orders;
     }
 
-    public RestaurantTable(Integer id, Integer number) {}
-
-    // verification ve hoe malalaka ve le table intant
+    /**
+     * Vérifie si la table est disponible à un instant donné.
+     * @param t L'instant à vérifier (généralement Instant.now())
+     * @return true si aucune commande n'occupe la table à cet instant
+     */
     public boolean isAvailableAt(Instant t) {
         for (TableOrder to : orders) {
-            // occupeé sa tsia
+            // Une table est occupée si 't' est entre l'arrivée et le départ
             if (!t.isBefore(to.getArrivalDatetime()) &&
                     (to.getDepartureDatetime() == null || t.isBefore(to.getDepartureDatetime()))) {
                 return false;
@@ -29,8 +31,8 @@ public class RestaurantTable {
         }
         return true;
     }
-    // Getters et Setters...
 
+    // --- Getters et Setters ---
 
     public Integer getId() {
         return id;
