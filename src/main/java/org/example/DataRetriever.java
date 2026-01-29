@@ -230,43 +230,86 @@ public class DataRetriever {
         return ingredient;
     }
 
+    public Order findOrderByReference(String reference) {
+        String sql = "SELECT * FROM \"order\" WHERE reference = ?";
+        try (Connection conn = DBConnection.getDBConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, reference);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Order order = new Order();
+                    order.setId(rs.getInt("id"));
+                    order.setReference(rs.getString("reference"));
+                    order.setCreationDatetime(rs.getTimestamp("creation_datetime").toInstant());
+                    return order;
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur lors de la recherche de la commande", e);
+        }
+        return null;
+    }
 
-    public Order saveOrder(Order orderToSave) {
+    public Order saveOrder(Order orderToSave, RestaurantTable targetTable, List<RestaurantTable> allTables) {
+        Instant now = orderToSave.getCreationDatetime() != null ? orderToSave.getCreationDatetime() : Instant.now();
+
+        // 1. Vérification de la disponibilité de la table
+        if (!targetTable.isAvailableAt(now)) {
+            List<Integer> freeTables = new ArrayList<>();
+            for (RestaurantTable rt : allTables) {
+                if (rt.isAvailableAt(now)) {
+                    freeTables.add(rt.getNumber());
+                }
+            }
+
+            if (freeTables.isEmpty()) {
+                throw new RuntimeException("aucune table n'est disponible."); //
+            } else {
+                throw new RuntimeException("La table n'est pas fournie. Tables libres : " + freeTables); //
+            }
+        }
+
+        // 2. Vérification des stocks avec conversion d'unités
         for (DishOrder doObj : orderToSave.getDishOrders()) {
             for (DishIngredient di : doObj.getDish().getIngredients()) {
-                // Quantité requise par la recette (déjà en KG selon le sujet)
-                double recipeQtyInKg = di.getQuantityRequired();
-                // Besoin total pour la commande du client
-                double totalNeededInKg = doObj.getQuantity() * recipeQtyInKg;
+                double totalNeeded = doObj.getQuantity() * di.getQuantityRequired();
+                double currentStock = di.getIngredient().getStockValueAt(now).getQuantity();
 
-                // Stock @ zao calculé avec conversion des mouvements taloha
-                double currentStockInKg = di.getIngredient().getStockValueAt(Instant.now()).getQuantity();
-
-                if (currentStockInKg < totalNeededInKg) {
+                if (currentStock < totalNeeded) {
                     throw new RuntimeException("Stock insuffisant pour l'ingrédient : " +
                             di.getIngredient().getName());
                 }
             }
         }
 
-        // sau
+        // 3. Sauvegarde (Order + DishOrder + TableOrder)
         Connection conn = null;
         try {
             conn = DBConnection.getDBConnection();
             conn.setAutoCommit(false);
 
+            // A. Insertion dans "order"
             String sqlOrder = "INSERT INTO \"order\" (reference, creation_datetime) VALUES (?, ?) RETURNING id";
             try (PreparedStatement ps = conn.prepareStatement(sqlOrder, Statement.RETURN_GENERATED_KEYS)) {
                 ps.setString(1, orderToSave.getReference());
-                ps.setTimestamp(2, Timestamp.from(orderToSave.getCreationDatetime()));
+                ps.setTimestamp(2, Timestamp.from(now));
                 ps.executeUpdate();
-                try (ResultSet rs = ps.getGeneratedKeys()) {
-                    if (rs.next()) orderToSave.setId(rs.getInt(1));
-                }
+                ResultSet rs = ps.getGeneratedKeys();
+                if (rs.next()) orderToSave.setId(rs.getInt(1));
             }
 
-            String sqlDishOrder = "INSERT INTO dish_order (id_order, id_dish, quantity) VALUES (?, ?, ?)";
-            try (PreparedStatement ps = conn.prepareStatement(sqlDishOrder)) {
+            // B. Insertion dans "table_order" (Association table/commande)
+            String sqlTableOrder = "INSERT INTO table_order (id_order, id_table, arrival_datetime) VALUES (?, ?, ?)";
+            try (PreparedStatement ps = conn.prepareStatement(sqlTableOrder)) {
+                ps.setInt(1, orderToSave.getId());
+                ps.setInt(2, targetTable.getId());
+                ps.setTimestamp(3, Timestamp.from(now));
+                ps.executeUpdate();
+            }
+
+            // C. Insertion dans "dish_order"
+            String sqlDish = "INSERT INTO dish_order (id_order, id_dish, quantity) VALUES (?, ?, ?)";
+            try (PreparedStatement ps = conn.prepareStatement(sqlDish)) {
                 for (DishOrder doObj : orderToSave.getDishOrders()) {
                     ps.setInt(1, orderToSave.getId());
                     ps.setInt(2, doObj.getDish().getId());
@@ -280,12 +323,11 @@ public class DataRetriever {
             return orderToSave;
         } catch (SQLException e) {
             if (conn != null) try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
-            throw new RuntimeException("Échec de l'insertion : " + e.getMessage());
+            throw new RuntimeException("Erreur base de données : " + e.getMessage());
         } finally {
             if (conn != null) try { conn.close(); } catch (SQLException e) { e.printStackTrace(); }
         }
     }
-
 
     public Dish findDishById(Integer id) {
         String sql = """

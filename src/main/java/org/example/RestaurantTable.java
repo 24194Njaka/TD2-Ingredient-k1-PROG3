@@ -9,6 +9,15 @@ public class RestaurantTable {
     private Integer number;
     private List<TableOrder> orders = new ArrayList<>(); // Historique des occupations
 
+
+    public RestaurantTable(Integer id, Integer number, List<TableOrder> orders) {
+        this.id = id;
+        this.number = number;
+        this.orders = orders;
+    }
+
+    public RestaurantTable(Integer id, Integer number) {}
+
     // verification ve hoe malalaka ve le table intant
     public boolean isAvailableAt(Instant t) {
         for (TableOrder to : orders) {
