@@ -386,7 +386,6 @@ public class Main {
         Order maCommande = new Order();
         maCommande.setReference("ORD-001"); // Référence courte pour éviter l'erreur VARCHAR(10)
         maCommande.setCreationDatetime(now);
-        // Note: Assurez-vous d'avoir ajouté des plats et ingrédients à maCommande ici si vous voulez tester le stock
 
         // --- 4. EXÉCUTION DES TESTS ---
 
